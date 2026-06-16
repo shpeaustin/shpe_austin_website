@@ -1,25 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
+import { HashRouter, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import ShpeHatAnimation from './pages/ShpeHatAnimation';
 
-function App() {
+function Home() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <main className="flex flex-col items-center justify-center min-h-screen font-sans">
+      <h1 className="text-4xl font-bold text-blue-700 mb-4">SHPE Austin</h1>
+      <p className="text-gray-600 text-lg">Welcome to the SHPE Austin website.</p>
+    </main>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <HashRouter>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/shpe-hat" element={<ShpeHatAnimation />} />
+      </Routes>
+    </HashRouter>
+  );
+}
