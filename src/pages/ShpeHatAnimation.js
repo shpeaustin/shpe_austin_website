@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export default function ShpeHatAnimation({ onComplete }) {
+export default function ShpeHatAnimation({ onComplete, speed = 1 }) {
   const hatWrapRef = useRef(null);
   const hatImgRef = useRef(null);
   const canvasRef = useRef(null);
@@ -78,7 +78,7 @@ export default function ShpeHatAnimation({ onComplete }) {
       ctx.restore();
     }
 
-    const TOTAL = 5000;
+    const TOTAL = 5000 / speed;
 
     function animate(ts) {
       if (!startTime) startTime = ts;
@@ -150,7 +150,7 @@ export default function ShpeHatAnimation({ onComplete }) {
     return () => {
       if (animId) cancelAnimationFrame(animId);
     };
-  }, [onComplete]);
+  }, [onComplete, speed]);
 
   return (
     <>
