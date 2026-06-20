@@ -46,6 +46,7 @@ const events = [
     tagBg: 'rgba(253,101,47,0.1)',
     tagColor: '#FD652F',
     rsvp: '#',
+    flyer: null,
   },
   {
     title: 'Virtual Event with ARM & SHPE Phoenix',
@@ -56,6 +57,7 @@ const events = [
     tagBg: 'rgba(0,112,192,0.1)',
     tagColor: '#0070C0',
     rsvp: '#',
+    flyer: null,
   },
 ];
 
@@ -424,6 +426,35 @@ export default function Home() {
               className="flex-1 rounded-2xl overflow-hidden"
               style={{ minWidth: '280px', maxWidth: '460px', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', borderTop: `4px solid ${ev.border}`, background: '#fff' }}
             >
+              {/* Flyer image */}
+              <div
+                className="w-full overflow-hidden flex items-center justify-center"
+                style={{
+                  height: '220px',
+                  background: ev.flyer
+                    ? 'transparent'
+                    : `linear-gradient(135deg, ${ev.border}18 0%, ${ev.border}08 100%)`,
+                  borderBottom: `1px solid ${ev.border}22`,
+                }}
+              >
+                {ev.flyer ? (
+                  <img
+                    src={ev.flyer}
+                    alt={`${ev.title} flyer`}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-2" style={{ color: `${ev.border}55` }}>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <path d="M21 15l-5-5L5 21" />
+                    </svg>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Flyer Coming Soon</span>
+                  </div>
+                )}
+              </div>
+
               <div className="p-8">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: ev.tagBg, color: ev.tagColor }}>{ev.tag}</span>
