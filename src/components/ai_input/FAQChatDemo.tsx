@@ -38,7 +38,7 @@ export function FAQChatDemo({ faqs }: Props) {
     timeoutRef.current = setTimeout(fn, ms);
   };
 
-  // Start animation only when section enters viewport
+  // only kick off once they actually scroll here
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -50,7 +50,7 @@ export function FAQChatDemo({ faqs }: Props) {
     return () => observer.disconnect();
   }, []);
 
-  // Kick off typing-question whenever faqIndex changes and we're started
+  // reset and start typing the new question
   useEffect(() => {
     if (!started) return;
     setInputText('');
@@ -109,21 +109,21 @@ export function FAQChatDemo({ faqs }: Props) {
 
   return (
     <div ref={containerRef} className="w-full max-w-xl mx-auto select-none">
-      {/* chat window */}
+      
       <div
         className="rounded-2xl border border-black/8 bg-white shadow-sm overflow-hidden mb-1"
         style={{ minHeight: 220 }}
       >
         <div className="px-4 py-4 flex flex-col gap-3" style={{ minHeight: 220 }}>
 
-          {/* empty / waiting state */}
+          {/* shown before the first question starts typing */}
           {!hasContent && (
             <div className="flex-1 flex items-center justify-center" style={{ minHeight: 180 }}>
               <p className="text-xs text-slate-400">Ask a membership question…</p>
             </div>
           )}
 
-          {/* question bubble */}
+          
           <AnimatePresence mode="wait">
             {currentQ && (
               <motion.div
@@ -144,7 +144,7 @@ export function FAQChatDemo({ faqs }: Props) {
             )}
           </AnimatePresence>
 
-          {/* answer bubble */}
+          
           <AnimatePresence mode="wait">
             {(phase === 'typing-answer' || phase === 'done') && answerText && (
               <motion.div
@@ -169,7 +169,7 @@ export function FAQChatDemo({ faqs }: Props) {
         </div>
       </div>
 
-      {/* input bar */}
+      
       <div className="relative border border-black/8 rounded-[22px] p-1 bg-white shadow-sm">
         <div className="relative rounded-2xl border border-black/5 bg-neutral-800/5 flex flex-col">
           <div className="relative px-4 py-3 min-h-[48px] flex items-center">
@@ -214,7 +214,7 @@ export function FAQChatDemo({ faqs }: Props) {
         </div>
       </div>
 
-      {/* nav controls */}
+      
       <div className="flex items-center justify-center gap-4 mt-4">
         <button
           onClick={() => setFaqIndex((i) => (i - 1 + faqs.length) % faqs.length)}

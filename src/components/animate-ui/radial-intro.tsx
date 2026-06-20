@@ -144,7 +144,7 @@ function RadialIntro({
           </motion.div>
         ))}
 
-        {/* centered X button */}
+        {/* X to collapse back to the stacked row */}
         {onCollapse && (
           <motion.button
             onClick={onCollapse}

@@ -8,7 +8,7 @@ import {
   Users, Camera, ChevronRight, Zap
 } from 'lucide-react';
 
-// ── DATA ──────────────────────────────────────────────────────────────────────
+
 
 const categories = [
   {
@@ -60,7 +60,7 @@ const categories = [
   },
 ];
 
-// ── TILT CARD ─────────────────────────────────────────────────────────────────
+// event card — tilts on hover
 
 function TiltCard({ event, accent, accentLight, gradient }) {
   const cardRef = useRef(null);
@@ -113,7 +113,7 @@ function TiltCard({ event, accent, accentLight, gradient }) {
           cursor: 'default',
         }}
       >
-        {/* cursor spotlight */}
+        {/* follows your cursor */}
         <div
           ref={spotRef}
           style={{
@@ -130,11 +130,11 @@ function TiltCard({ event, accent, accentLight, gradient }) {
           }}
         />
 
-        {/* top accent strip */}
+        
         <div style={{ height: 4, background: gradient }} />
 
         <div style={{ padding: '24px', position: 'relative', zIndex: 1 }}>
-          {/* icon */}
+          
           <div
             style={{
               width: 48,
@@ -162,7 +162,7 @@ function TiltCard({ event, accent, accentLight, gradient }) {
   );
 }
 
-// ── ANIMATED CATEGORY SELECTOR ────────────────────────────────────────────────
+// pill selector for switching event categories
 
 function CategorySelector({ categories, active, onChange }) {
   return (
@@ -207,7 +207,7 @@ function CategorySelector({ categories, active, onChange }) {
   );
 }
 
-// ── CAROUSEL ──────────────────────────────────────────────────────────────────
+// photo carousel for past event shots
 
 const slides = Array.from({ length: 8 }, (_, i) => ({ id: i, label: `Event Photo ${i + 1}` }));
 
@@ -227,14 +227,14 @@ function Carousel() {
     exit: (d) => ({ x: d > 0 ? '-100%' : '100%', opacity: 0, scale: 0.96, transition: { duration: 0.35, ease: [0.32, 0.72, 0, 1] } }),
   };
 
-  // adjacent indices for the side previews
+  // next/prev indices for the peek thumbnails
   const prev = (current - 1 + total) % total;
   const next = (current + 1) % total;
 
   return (
     <div style={{ position: 'relative', userSelect: 'none' }}>
 
-      {/* main stage */}
+      
       <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: 400, background: '#0f172a', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
@@ -265,7 +265,7 @@ function Carousel() {
           </motion.div>
         </AnimatePresence>
 
-        {/* slide counter badge */}
+        
         <div style={{
           position: 'absolute', top: 16, right: 16, zIndex: 10,
           padding: '4px 12px', borderRadius: 999,
@@ -276,7 +276,7 @@ function Carousel() {
           {current + 1} / {total}
         </div>
 
-        {/* arrow buttons */}
+        
         {[{ dir: -1, side: 'left', icon: '←' }, { dir: 1, side: 'right', icon: '→' }].map(({ dir, side, icon }) => (
           <button
             key={side}
@@ -298,7 +298,7 @@ function Carousel() {
         ))}
       </div>
 
-      {/* thumbnail strip */}
+      
       <div style={{ display: 'flex', gap: 10, marginTop: 14, justifyContent: 'center' }}>
         {slides.map((_, i) => (
           <button
@@ -323,7 +323,7 @@ function Carousel() {
         ))}
       </div>
 
-      {/* prev / next peek labels */}
+      
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, padding: '0 4px' }}>
         <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>← {slides[prev].label}</span>
         <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>{slides[next].label} →</span>
@@ -332,7 +332,7 @@ function Carousel() {
   );
 }
 
-// ── MAIN PAGE ─────────────────────────────────────────────────────────────────
+
 
 export default function Events() {
   const [active, setActive] = useState('professional');
@@ -341,7 +341,7 @@ export default function Events() {
   return (
     <main style={{ paddingTop: '60px', background: '#f8fafc', minHeight: '100vh' }}>
 
-      {/* ── HERO ── */}
+      
       <section
         style={{
           position: 'relative',
@@ -351,7 +351,7 @@ export default function Events() {
           background: 'linear-gradient(135deg, #001F5B 0%, #0a1a3a 100%)',
         }}
       >
-        {/* blobs */}
+        
         <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: '#0070C0', top: -150, right: -100, filter: 'blur(100px)', opacity: 0.12, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', width: 350, height: 350, borderRadius: '50%', background: '#FD652F', bottom: -80, left: -80, filter: 'blur(80px)', opacity: 0.12, pointerEvents: 'none' }} />
 
@@ -378,12 +378,12 @@ export default function Events() {
             From career-defining conferences to soccer games and holiday parties — SHPE Austin events are where the community comes alive.
           </p>
 
-          {/* category selector lives in hero */}
+          
           <CategorySelector categories={categories} active={active} onChange={setActive} />
         </motion.div>
       </section>
 
-      {/* ── ACTIVE CATEGORY ── */}
+      
       <AnimatePresence mode="wait">
         <motion.section
           key={active}
@@ -393,7 +393,7 @@ export default function Events() {
           transition={{ duration: 0.4, ease: 'easeOut' }}
           style={{ padding: '72px 24px', maxWidth: 1100, margin: '0 auto' }}
         >
-          {/* category header */}
+          
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 48 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
               <div style={{ width: 6, height: 48, borderRadius: 999, background: current.gradient }} />
@@ -406,7 +406,7 @@ export default function Events() {
             </p>
           </div>
 
-          {/* tilt cards grid */}
+          
           <motion.div
             initial="hidden"
             animate="visible"
@@ -428,7 +428,7 @@ export default function Events() {
             ))}
           </motion.div>
 
-          {/* category switcher arrows */}
+          
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 40 }}>
             {categories.filter((c) => c.id !== active).map((cat) => (
               <button
@@ -450,7 +450,7 @@ export default function Events() {
         </motion.section>
       </AnimatePresence>
 
-      {/* ── PHOTO GALLERY ── */}
+      
       <section style={{ padding: '72px 0', background: 'white', overflow: 'hidden' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', paddingLeft: 24, marginBottom: 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
@@ -467,7 +467,7 @@ export default function Events() {
         <Carousel />
       </section>
 
-      {/* ── JOIN CTA ── */}
+      
       <section style={{ position: 'relative', overflow: 'hidden', padding: '96px 24px', background: 'linear-gradient(135deg, #001F5B 0%, #0a1a3a 100%)' }}>
         <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: '#FD652F', top: -100, right: -100, filter: 'blur(80px)', opacity: 0.12, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', width: 300, height: 300, borderRadius: '50%', background: '#0070C0', bottom: -80, left: -80, filter: 'blur(60px)', opacity: 0.12, pointerEvents: 'none' }} />

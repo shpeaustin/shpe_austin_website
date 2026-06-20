@@ -109,7 +109,7 @@ const socialLinks = [
   { Icon: FaLinkedinIn, href: 'https://linkedin.com', label: 'LinkedIn', color: '#0A66C2' },
 ];
 
-// ── AMBILIGHT HOOK ────────────────────────────────────────────────────────────
+// ambilight glow that samples colors from whatever image is active
 function useAmbientVideo(videoRef, active) {
   const [colors, setColors] = useState({ top: '#000', bottom: '#000', left: '#000', right: '#000' });
   const canvasRef = useRef(null);
@@ -156,7 +156,7 @@ function useAmbientVideo(videoRef, active) {
   return colors;
 }
 
-// ── HOME ──────────────────────────────────────────────────────────────────────
+
 export default function Home() {
   const { events, loading: eventsLoading, error: eventsError } = useEvents();
   const [lightboxSrc, setLightboxSrc] = useState(null);
@@ -170,7 +170,7 @@ export default function Home() {
     return () => clearInterval(id);
   }, [events.length, carouselPaused]);
 
-  // Resume carousel when lightbox is closed
+  // restart the carousel once they close the lightbox
   useEffect(() => {
     if (!lightboxSrc) setCarouselPaused(false);
   }, [lightboxSrc]);
@@ -233,7 +233,7 @@ export default function Home() {
         }
       `}</style>
 
-      {/* ── INTRO: VIDEO ── */}
+      
       {stage === 'video' && (
         <div style={{
           transition: 'opacity 0.6s ease',
@@ -257,7 +257,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* ── INTRO: HAT ANIMATION ── */}
+      
       {(stage === 'hat' || stage === 'done') && (
         <motion.div
           initial={stage === 'hat' ? { opacity: 0, scale: 1.04 } : false}
@@ -268,7 +268,7 @@ export default function Home() {
           alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 0,
           background: '#ffffff', overflow: 'hidden',
         }}>
-          {/* flash overlay — only plays on first entrance from video */}
+          {/* white flash when transitioning from the video section */}
           {stage === 'hat' && (
             <>
               <div style={{
@@ -293,11 +293,11 @@ export default function Home() {
             </>
           )}
 
-          {/* very soft SHPE color blushes — barely visible on white */}
+          
           <div style={{ position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: '#0070C0', top: '-200px', left: '-200px', filter: 'blur(160px)', opacity: 0.06, pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: '#FD652F', bottom: '-160px', right: '-160px', filter: 'blur(140px)', opacity: 0.07, pointerEvents: 'none' }} />
 
-          {/* top label */}
+          
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -308,7 +308,7 @@ export default function Home() {
             <div style={{ width: 24, height: 1, background: '#d1d5db' }} />
           </motion.div>
 
-          {/* "Bienvenido a" text */}
+          
           <AnimatePresence>
             {hatDone && (
               <div style={{ textAlign: 'center', position: 'relative', zIndex: 1, perspective: '600px' }}>
@@ -344,12 +344,12 @@ export default function Home() {
             )}
           </AnimatePresence>
 
-          {/* hat animation */}
+          
           <div className="hat-margin" style={{ position: 'relative', zIndex: 1 }}>
             <ShpeHatAnimation onComplete={handleHatComplete} speed={stage === 'done' ? 999 : 1.4} />
           </div>
 
-          {/* chapter tagline — fades in after hat lands */}
+          
           <AnimatePresence>
             {hatDone && (
               <motion.div
@@ -371,7 +371,7 @@ export default function Home() {
             )}
           </AnimatePresence>
 
-          {/* scroll hint */}
+          
           <AnimatePresence>
             {hatDone && (
               <motion.div
@@ -392,11 +392,11 @@ export default function Home() {
         </motion.div>
       )}
 
-      {/* ══════════════════════════════════════
+      {/*
           SECTION 1 — OUR MISSION
       ══════════════════════════════════════ */}
       <motion.section {...fadeUp} className="relative overflow-hidden py-28 px-6 text-center" style={{ background: 'linear-gradient(135deg, #001F5B 0%, #0a1a3a 100%)' }}>
-        {/* Decorative blobs */}
+        
         <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full opacity-10" style={{ background: '#0070C0', filter: 'blur(80px)' }} />
         <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full opacity-10" style={{ background: '#FD652F', filter: 'blur(80px)' }} />
 
@@ -417,7 +417,7 @@ export default function Home() {
         </div>
       </motion.section>
 
-      {/* ══════════════════════════════════════
+      {/*
           SECTION 2 — SHPE VALUES
       ══════════════════════════════════════ */}
       <section className="py-28 px-6" style={{ background: '#f0f4f8' }}>
@@ -445,10 +445,10 @@ export default function Home() {
               className="relative overflow-hidden rounded-2xl p-8 flex flex-col items-center text-center group cursor-default"
               style={{ background: '#fff', boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}
             >
-              {/* Colored top bar */}
+              
               <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${color}, ${accent})` }} />
 
-              {/* Icon circle */}
+              
               <div className="flex items-center justify-center w-16 h-16 rounded-2xl mb-5 mt-2 transition-transform duration-300 group-hover:scale-110" style={{ background: `linear-gradient(135deg, ${color}, ${accent})` }}>
                 <Icon size={28} color="#fff" strokeWidth={1.8} />
               </div>
@@ -456,14 +456,14 @@ export default function Home() {
               <h3 className="font-black text-xl mb-3" style={{ color }}>{label}</h3>
               <p className="text-sm leading-relaxed" style={{ color: '#6b7280' }}>{desc}</p>
 
-              {/* Subtle background glow on hover */}
+              
               <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 0%, ${color}08 0%, transparent 70%)` }} />
             </motion.div>
           ))}
         </motion.div>
       </section>
 
-      {/* ══════════════════════════════════════
+      {/*
           SECTION 3 — UPCOMING EVENTS
       ══════════════════════════════════════ */}
       <section className="py-28 px-6" style={{ background: '#fff' }}>
@@ -476,7 +476,7 @@ export default function Home() {
           </h2>
         </motion.div>
 
-        {/* Lightbox */}
+        
         <AnimatePresence>
           {lightboxSrc && (
             <motion.div
@@ -547,7 +547,7 @@ export default function Home() {
         {!eventsLoading && !eventsError && events.length > 0 && (() => {
           const ev = events[activeIdx];
           const stackCount = Math.min(events.length - 1, 2);
-          // peek cards: the next 1-2 events shown behind
+          // peek cards = the next events peeking out behind the active one
           const peekCards = Array.from({ length: stackCount }, (_, d) => {
             const peekIdx = (activeIdx + d + 1) % events.length;
             return events[peekIdx];
@@ -555,13 +555,13 @@ export default function Home() {
 
           return (
             <div className="max-w-4xl mx-auto mb-10">
-              {/* Stack wrapper — extra bottom padding so peek cards are visible */}
+              
               <div
                 style={{ position: 'relative', paddingBottom: stackCount * 14 }}
                 onMouseEnter={() => setCarouselPaused(true)}
                 onMouseLeave={() => { if (!lightboxSrc) setCarouselPaused(false); }}
               >
-                {/* Peek cards (actual next event previews, not just grey boxes) */}
+                {/* next event previews peeking behind */}
                 {peekCards.map((peek, d) => (
                   <div
                     key={peek.title + d}
@@ -583,7 +583,7 @@ export default function Home() {
                       pointerEvents: 'none',
                     }}
                   >
-                    {/* Blurred flyer preview so you can see it's a different event */}
+                    
                     {peek.flyer && (
                       <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${peek.flyer})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(2px)', opacity: 0.4 }} />
                     )}
@@ -594,7 +594,7 @@ export default function Home() {
                   </div>
                 ))}
 
-                {/* Active card */}
+                
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeIdx}
@@ -611,7 +611,7 @@ export default function Home() {
                       background: '#fff',
                     }}
                   >
-                    {/* Flyer panel */}
+                    
                     <div
                       className="event-flyer-panel"
                       style={{
@@ -653,7 +653,7 @@ export default function Home() {
                       )}
                     </div>
 
-                    {/* Info panel */}
+                    
                     <div className="p-8 flex flex-col justify-center" style={{ flex: 1, minWidth: 240 }}>
                       <div className="flex items-center gap-3 mb-4">
                         <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: ev.tagBg, color: ev.tagColor }}>{ev.tag}</span>
@@ -684,7 +684,7 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-              {/* Dot indicators + paused badge */}
+              
               {events.length > 1 && (
                 <div className="flex justify-center items-center gap-3 mt-6">
                   {carouselPaused && (
@@ -732,7 +732,7 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* ══════════════════════════════════════
+      {/*
           SECTION 4 — MEMBERSHIP
       ══════════════════════════════════════ */}
       <motion.section {...fadeUp} className="py-28 px-6" style={{ background: '#f0f4f8' }}>
@@ -768,7 +768,7 @@ export default function Home() {
         </div>
       </motion.section>
 
-      {/* ══════════════════════════════════════
+      {/*
           SECTION 5 — BECOME A SPONSOR
       ══════════════════════════════════════ */}
       <motion.section {...fadeUp} className="relative overflow-hidden py-28 px-6 text-center" style={{ background: 'linear-gradient(135deg, #001F5B 0%, #0a1a3a 100%)' }}>
@@ -799,7 +799,7 @@ export default function Home() {
         </div>
       </motion.section>
 
-      {/* ══════════════════════════════════════
+      {/*
           SECTION 6 — DONATE
       ══════════════════════════════════════ */}
       <motion.section {...fadeUp} className="relative overflow-hidden py-28 px-6 text-center" style={{ background: 'linear-gradient(135deg, #FD652F 0%, #D33A02 100%)' }}>
@@ -830,13 +830,13 @@ export default function Home() {
         </div>
       </motion.section>
 
-      {/* ══════════════════════════════════════
+      {/*
           FOOTER
       ══════════════════════════════════════ */}
       <footer className="py-16 px-6" style={{ background: '#0a0f1e' }}>
         <div className="max-w-5xl mx-auto flex flex-wrap gap-12 justify-between">
 
-          {/* Logo / Brand */}
+          
           <div className="flex-1" style={{ minWidth: '200px', maxWidth: '280px' }}>
             <img src={require('../assets/logos/SHPE_austin_horiz_logo.png')} alt="SHPE Austin" style={{ height: '36px', marginBottom: '1rem' }} />
             <p className="text-sm leading-relaxed" style={{ color: '#6b7280' }}>
@@ -844,7 +844,7 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Contact */}
+          
           <div className="flex-1" style={{ minWidth: '180px' }}>
             <h4 className="font-black text-sm tracking-widest uppercase mb-4" style={{ color: '#FD652F' }}>Contact Us</h4>
             <address className="not-italic text-sm leading-relaxed" style={{ color: '#9ca3af' }}>
@@ -856,7 +856,7 @@ export default function Home() {
             </address>
           </div>
 
-          {/* Follow Us */}
+          
           <div className="flex-1" style={{ minWidth: '180px' }}>
             <h4 className="font-black text-sm tracking-widest uppercase mb-4" style={{ color: '#FD652F' }}>Follow Us</h4>
             <div className="flex flex-col gap-3">

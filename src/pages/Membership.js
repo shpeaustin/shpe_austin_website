@@ -4,7 +4,7 @@ import { Monitor, UserCheck, CreditCard, CheckCircle, Mail, Download, ArrowRight
 import { FAQChatDemo } from '../components/ai_input/FAQChatDemo';
 import memberPDF from '../assets/How-to-become-a-member-in-Austin-SHPE-Professional-Chapter.pdf';
 
-// ── STEP DATA ─────────────────────────────────────────────────────────────────
+// membership steps — order matters
 
 const steps = [
   {
@@ -60,7 +60,7 @@ const faqs = [
   },
 ];
 
-// ── TILT STEP CARD ────────────────────────────────────────────────────────────
+// each step card — tilts on hover when not active
 
 function StepCard({ step, index, isActive, onClick }) {
   const cardRef = useRef(null);
@@ -106,7 +106,7 @@ function StepCard({ step, index, isActive, onClick }) {
           padding: 28,
         }}
       >
-        {/* cursor spotlight (inactive only) */}
+        {/* follows your mouse so the card feels alive */}
         <div ref={spotRef} style={{
           position: 'absolute', width: 180, height: 180, borderRadius: '50%',
           background: `radial-gradient(circle, ${step.accent}14 0%, transparent 70%)`,
@@ -114,7 +114,7 @@ function StepCard({ step, index, isActive, onClick }) {
           opacity: 0, transition: 'opacity 0.2s', zIndex: 0,
         }} />
 
-        {/* decorative blob when active */}
+        {/* little glow circle when this step is selected */}
         {isActive && (
           <div style={{
             position: 'absolute', width: 180, height: 180, borderRadius: '50%',
@@ -123,7 +123,6 @@ function StepCard({ step, index, isActive, onClick }) {
         )}
 
         <div style={{ position: 'relative', zIndex: 1 }}>
-          {/* step number */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <span style={{
               fontSize: '2.5rem', fontWeight: 900, lineHeight: 1,
@@ -174,7 +173,6 @@ function StepCard({ step, index, isActive, onClick }) {
 }
 
 
-// ── MAIN ──────────────────────────────────────────────────────────────────────
 
 export default function Membership() {
   const [activeStep, setActiveStep] = useState(0);
@@ -182,7 +180,6 @@ export default function Membership() {
   return (
     <main style={{ paddingTop: '60px', background: '#f8fafc', minHeight: '100vh' }}>
 
-      {/* ── HERO ── */}
       <section style={{
         position: 'relative', overflow: 'hidden',
         padding: '80px 24px 72px', textAlign: 'center',
@@ -217,7 +214,6 @@ export default function Membership() {
             Becoming a SHPE Austin member is your gateway to a professional network, career resources, and a community that has your back. Here's how to get started.
           </p>
 
-          {/* CTA row */}
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <motion.a
               href={memberPDF}
@@ -255,7 +251,6 @@ export default function Membership() {
         </motion.div>
       </section>
 
-      {/* ── STEPS ── */}
       <section style={{ padding: '80px 24px', maxWidth: 1000, margin: '0 auto' }}>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -293,7 +288,6 @@ export default function Membership() {
           ))}
         </motion.div>
 
-        {/* progress bar */}
         <div style={{ marginTop: 32, display: 'flex', gap: 6 }}>
           {steps.map((step, i) => (
             <motion.div
@@ -313,7 +307,6 @@ export default function Membership() {
         </p>
       </section>
 
-      {/* ── VERIFICATION CALLOUT ── */}
       <motion.section
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -364,7 +357,6 @@ export default function Membership() {
         </div>
       </motion.section>
 
-      {/* ── FAQ ── */}
       <section style={{ padding: '0 24px 80px', maxWidth: 720, margin: '0 auto' }}>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -386,7 +378,7 @@ export default function Membership() {
 
         <FAQChatDemo faqs={faqs} />
 
-        {/* still need help */}
+        {/* if none of the FAQs helped */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

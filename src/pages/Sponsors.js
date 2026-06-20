@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Mail, MapPin, Building2, Star, Award, Gem } from 'lucide-react';
 import armLogo from '../assets/sponsors/arm_logo.svg';
 
-// ── TIER CONFIG ───────────────────────────────────────────────────────────────
+// sponsor tiers and who belongs in each
 
 const tiers = [
   {
@@ -54,7 +54,7 @@ const tiers = [
   },
 ];
 
-// ── SPONSOR CARD ──────────────────────────────────────────────────────────────
+// individual sponsor card
 
 function SponsorCard({ sponsor, tier }) {
   const cardRef = useRef(null);
@@ -93,7 +93,7 @@ function SponsorCard({ sponsor, tier }) {
         cursor: 'default',
       }}
     >
-      {/* cursor glow */}
+      {/* follows your mouse */}
       <div ref={spotRef} style={{
         position: 'absolute', width: 240, height: 240, borderRadius: '50%',
         background: `radial-gradient(circle, ${tier.glow} 0%, transparent 70%)`,
@@ -101,14 +101,14 @@ function SponsorCard({ sponsor, tier }) {
         opacity: 0, transition: 'opacity 0.2s', zIndex: 0,
       }} />
 
-      {/* shimmer top bar */}
+      
       <div style={{ height: 5, background: tier.gradient, position: 'relative', zIndex: 1 }} />
 
       <div style={{ padding: '36px 36px 32px', position: 'relative', zIndex: 1 }}>
-        {/* logo area + tier badge */}
+        
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28, gap: 16 }}>
 
-          {/* logo / name block */}
+          
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             minWidth: 120, height: 80, borderRadius: 16, padding: '12px 20px',
@@ -121,7 +121,7 @@ function SponsorCard({ sponsor, tier }) {
             }
           </div>
 
-          {/* tier badge */}
+          
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '6px 14px', borderRadius: 999,
@@ -135,7 +135,7 @@ function SponsorCard({ sponsor, tier }) {
           </div>
         </div>
 
-        {/* name & tagline */}
+        
         <h3 style={{ fontWeight: 900, fontSize: '1.6rem', color: '#0f172a', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
           {sponsor.name}
         </h3>
@@ -143,12 +143,12 @@ function SponsorCard({ sponsor, tier }) {
           {sponsor.tagline}
         </p>
 
-        {/* description */}
+        
         <p style={{ fontSize: '0.93rem', lineHeight: 1.75, color: '#475569', margin: '0 0 24px' }}>
           {sponsor.description}
         </p>
 
-        {/* meta chips */}
+        
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 28 }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 6,
@@ -172,7 +172,7 @@ function SponsorCard({ sponsor, tier }) {
           )}
         </div>
 
-        {/* visit button */}
+        
         {sponsor.website && (
           <a
             href={sponsor.website}
@@ -198,7 +198,7 @@ function SponsorCard({ sponsor, tier }) {
   );
 }
 
-// ── EMPTY TIER SLOT ───────────────────────────────────────────────────────────
+// placeholder card when a tier has no sponsors yet
 
 function EmptyTierSlot({ tier }) {
   return (
@@ -238,13 +238,13 @@ function EmptyTierSlot({ tier }) {
   );
 }
 
-// ── MAIN ──────────────────────────────────────────────────────────────────────
+
 
 export default function Sponsors() {
   return (
     <main style={{ paddingTop: '60px', background: '#f8fafc', minHeight: '100vh' }}>
 
-      {/* ── HERO ── */}
+      
       <section style={{
         position: 'relative', overflow: 'hidden',
         padding: '80px 24px 72px', textAlign: 'center',
@@ -298,7 +298,7 @@ export default function Sponsors() {
         </motion.div>
       </section>
 
-      {/* ── TIERS ── */}
+      
       <section style={{ padding: '72px 24px 80px', maxWidth: 900, margin: '0 auto' }}>
         {tiers.map((tier, tierIdx) => (
           <motion.div
@@ -309,7 +309,7 @@ export default function Sponsors() {
             transition={{ delay: tierIdx * 0.12, duration: 0.55, ease: 'easeOut' }}
             style={{ marginBottom: tierIdx < tiers.length - 1 ? 64 : 0 }}
           >
-            {/* tier header */}
+            
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
               <div style={{
                 width: 44, height: 44, borderRadius: 14,
@@ -327,7 +327,7 @@ export default function Sponsors() {
               </div>
             </div>
 
-            {/* sponsor cards or empty slots */}
+            
             <div style={{ display: 'grid', gap: 20, gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
               {tier.sponsors.length > 0
                 ? tier.sponsors.map((s) => <SponsorCard key={s.name} sponsor={s} tier={tier} />)
@@ -338,7 +338,7 @@ export default function Sponsors() {
         ))}
       </section>
 
-      {/* ── BECOME A SPONSOR CTA ── */}
+      
       <motion.section
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -351,7 +351,7 @@ export default function Sponsors() {
           background: 'linear-gradient(135deg, #001F5B 0%, #0070C0 100%)',
           boxShadow: '0 20px 60px rgba(0,31,91,0.25)',
         }}>
-          {/* animated gradient shimmer bar */}
+          
           <div style={{ height: 4, background: 'linear-gradient(90deg, #FD652F, #D33A02, #0070C0, #001F5B, #FD652F)', backgroundSize: '300% 100%', animation: 'gradientSlide 3s linear infinite' }} />
 
           <div style={{ padding: '48px 40px', display: 'flex', flexWrap: 'wrap', gap: 32, alignItems: 'center' }}>

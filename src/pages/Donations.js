@@ -37,7 +37,7 @@ const impacts = [
   },
 ];
 
-// ── TILT IMPACT CARD ──────────────────────────────────────────────────────────
+// impact card — shows where donations go
 
 function ImpactCard({ item, index }) {
   const cardRef = useRef(null);
@@ -84,7 +84,7 @@ function ImpactCard({ item, index }) {
           padding: '28px 24px', cursor: 'default',
         }}
       >
-        {/* cursor spotlight */}
+        {/* mouse follow spotlight */}
         <div ref={spotRef} style={{
           position: 'absolute', width: 180, height: 180, borderRadius: '50%',
           background: `radial-gradient(circle, ${item.accent}14 0%, transparent 70%)`,
@@ -92,7 +92,7 @@ function ImpactCard({ item, index }) {
           opacity: 0, transition: 'opacity 0.2s', zIndex: 0,
         }} />
 
-        {/* top accent bar */}
+        
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: item.gradient }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -111,7 +111,7 @@ function ImpactCard({ item, index }) {
   );
 }
 
-// ── MAIN ──────────────────────────────────────────────────────────────────────
+
 
 export default function Donations() {
   const [iframeLoaded, setIframeLoaded] = useState(false);
@@ -119,13 +119,13 @@ export default function Donations() {
   return (
     <main style={{ paddingTop: '60px', background: '#f8fafc', minHeight: '100vh' }}>
 
-      {/* ── HERO ── */}
+      
       <section style={{
         position: 'relative', overflow: 'hidden',
         padding: '80px 24px 72px', textAlign: 'center',
         background: 'linear-gradient(135deg, #D33A02 0%, #7a1e01 100%)',
       }}>
-        {/* blobs */}
+        
         <div style={{ position: 'absolute', width: 480, height: 480, borderRadius: '50%', background: '#FD652F', top: -140, right: -80, filter: 'blur(100px)', opacity: 0.25, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', width: 320, height: 320, borderRadius: '50%', background: '#001F5B', bottom: -80, left: -60, filter: 'blur(80px)', opacity: 0.2, pointerEvents: 'none' }} />
 
@@ -135,7 +135,7 @@ export default function Donations() {
           transition={{ duration: 0.7 }}
           style={{ position: 'relative', zIndex: 1, maxWidth: 660, margin: '0 auto' }}
         >
-          {/* animated heart icon */}
+          
           <motion.div
             animate={{ scale: [1, 1.12, 1] }}
             transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
@@ -162,7 +162,7 @@ export default function Donations() {
             Your generosity helps SHPE Austin achieve our goals of giving back to the community in impactful ways — from scholarships for students to donations to local food banks, and so much more.
           </p>
 
-          {/* floating thank you badge */}
+          
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -175,7 +175,7 @@ export default function Donations() {
         </motion.div>
       </section>
 
-      {/* ── YOUR DONATION GOES TO ── */}
+      
       <section style={{ padding: '72px 24px', maxWidth: 1000, margin: '0 auto' }}>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -202,7 +202,7 @@ export default function Donations() {
         </div>
       </section>
 
-      {/* ── DONATION FORM ── */}
+      
       <section style={{ padding: '0 24px 80px', maxWidth: 860, margin: '0 auto' }}>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -222,7 +222,7 @@ export default function Donations() {
           </p>
         </motion.div>
 
-        {/* iframe container */}
+        
         <motion.div
           initial={{ opacity: 0, y: 32 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -235,7 +235,7 @@ export default function Donations() {
             background: 'white',
           }}
         >
-          {/* header bar */}
+          
           <div style={{
             padding: '18px 24px', display: 'flex', alignItems: 'center', gap: 12,
             borderBottom: '1px solid #f1f5f9',
@@ -256,7 +256,7 @@ export default function Donations() {
             <Heart size={16} color="rgba(255,255,255,0.6)" />
           </div>
 
-          {/* loading shimmer */}
+          {/* shimmer while the zeffy iframe loads */}
           {!iframeLoaded && (
             <div style={{
               position: 'absolute', inset: 0, top: 57,
@@ -286,7 +286,7 @@ export default function Donations() {
           />
         </motion.div>
 
-        {/* trust badges */}
+        
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
