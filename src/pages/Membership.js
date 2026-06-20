@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Monitor, UserCheck, CreditCard, CheckCircle, Mail, ChevronDown, Download, ArrowRight } from 'lucide-react';
+import { Monitor, UserCheck, CreditCard, CheckCircle, Mail, Download, ArrowRight } from 'lucide-react';
+import { FAQChatDemo } from '../components/ai_input/FAQChatDemo';
 import memberPDF from '../assets/How-to-become-a-member-in-Austin-SHPE-Professional-Chapter.pdf';
 
 // ── STEP DATA ─────────────────────────────────────────────────────────────────
@@ -172,49 +173,6 @@ function StepCard({ step, index, isActive, onClick }) {
   );
 }
 
-// ── FAQ ITEM ──────────────────────────────────────────────────────────────────
-
-function FAQItem({ faq, index }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.08, duration: 0.45 }}
-      style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid #e2e8f0', background: 'white' }}
-    >
-      <button
-        onClick={() => setOpen((o) => !o)}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '20px 24px', border: 'none', background: 'transparent', cursor: 'pointer', gap: 16, textAlign: 'left',
-        }}
-      >
-        <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a', lineHeight: 1.4 }}>{faq.q}</span>
-        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.25 }} style={{ flexShrink: 0 }}>
-          <ChevronDown size={18} color="#64748b" />
-        </motion.div>
-      </button>
-
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div style={{ padding: '0 24px 20px', borderTop: '1px solid #f1f5f9' }}>
-              <p style={{ margin: '16px 0 0', fontSize: '0.9rem', lineHeight: 1.7, color: '#64748b' }}>{faq.a}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
 
 // ── MAIN ──────────────────────────────────────────────────────────────────────
 
@@ -426,9 +384,7 @@ export default function Membership() {
           </p>
         </motion.div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {faqs.map((faq, i) => <FAQItem key={i} faq={faq} index={i} />)}
-        </div>
+        <FAQChatDemo faqs={faqs} />
 
         {/* still need help */}
         <motion.div

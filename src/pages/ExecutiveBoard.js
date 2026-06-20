@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar } from '../components/base/avatar/avatar';
+import { RadialIntro } from '../components/animate-ui/radial-intro';
 
 const board = [
   {
@@ -94,11 +95,11 @@ const board = [
   {
     name: 'Luigi Medrano',
     position: 'Professional Development Director',
-    profession: 'Computer Science',
-    company: 'Company Name',
-    school: 'Texas State University',
+    profession: 'Software Engineer/Data Scientist',
+    company: 'Dell Technologies',
+    school: 'The University of Texas at Austin',
     bio: 'Organizes workshops, networking events, and career fairs. Equips members with the tools they need to thrive in the professional world.',
-    photo: null,
+    photo: require('../assets/executive_board/luigi.jpg'),
     accent: '#001F5B',
     gradient: 'linear-gradient(135deg, #001F5B 0%, #0a2a5e 100%)',
   },
@@ -213,90 +214,11 @@ function ProfileModal({ member, onClose }) {
   );
 }
 
-function AvatarGroup({ members, onSelect }) {
-  const [overflowOpen, setOverflowOpen] = useState(false);
-  const visible = members.slice(0, 8);
-  const hidden = members.slice(8);
-
-  return (
-    <motion.div
-      className="flex items-center justify-center mt-10"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4, duration: 0.6 }}
-    >
-      <div className="flex items-center" style={{ gap: 0 }}>
-        {visible.map((member, i) => (
-          <motion.button
-            key={member.position}
-            onClick={() => onSelect(member)}
-            whileHover={{ scale: 1.15, zIndex: 20, y: -4 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-            className="relative focus:outline-none"
-            style={{ marginLeft: i === 0 ? 0 : '-12px', zIndex: i }}
-            title={member.name}
-          >
-            <Avatar
-              size="xl"
-              src={member.photo}
-              initials={initials(member.name)}
-              border
-              className="shadow-lg cursor-pointer"
-            />
-          </motion.button>
-        ))}
-
-        {hidden.length > 0 && (
-          <div className="relative" style={{ marginLeft: '-12px', zIndex: visible.length }}>
-            <motion.button
-              onClick={() => setOverflowOpen((o) => !o)}
-              whileHover={{ scale: 1.1, y: -4 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-              className="flex items-center justify-center rounded-full font-black text-white text-sm shadow-lg focus:outline-none"
-              style={{ width: 56, height: 56, background: 'rgba(255,255,255,0.15)', border: '3px solid rgba(255,255,255,0.4)' }}
-            >
-              +{hidden.length}
-            </motion.button>
-
-            <AnimatePresence>
-              {overflowOpen && (
-                <>
-                  <div className="fixed inset-0 z-30" onClick={() => setOverflowOpen(false)} />
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9, y: 8 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: 8 }}
-                    transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-                    className="absolute bottom-full mb-3 right-0 z-40 rounded-2xl overflow-hidden shadow-2xl"
-                    style={{ minWidth: 200, background: 'white', border: '1px solid rgba(0,0,0,0.08)' }}
-                  >
-                    {hidden.map((member) => (
-                      <button
-                        key={member.position}
-                        onClick={() => { setOverflowOpen(false); onSelect(member); }}
-                        className="flex items-center gap-3 w-full px-4 py-3 text-left transition-colors hover:bg-gray-50"
-                      >
-                        <Avatar
-                          size="sm"
-                          src={member.photo}
-                          initials={initials(member.name)}
-                          border
-                        />
-                        <div>
-                          <p className="text-sm font-bold leading-tight" style={{ color: '#001F5B' }}>{member.name}</p>
-                          <p className="text-xs" style={{ color: '#6b7280' }}>{member.position}</p>
-                        </div>
-                      </button>
-                    ))}
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
-      </div>
-    </motion.div>
-  );
+function avatarSrc(member) {
+  if (member.photo) return member.photo;
+  const ini = initials(member.name);
+  const color = member.accent.replace('#', '%23');
+  return `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><circle cx='30' cy='30' r='30' fill='${color}'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='sans-serif' font-weight='900' font-size='20' fill='white'>${ini}</text></svg>`;
 }
 
 function BoardCard({ member, index }) {
@@ -414,8 +336,73 @@ function BoardCard({ member, index }) {
   );
 }
 
+function CollapsedAvatarRow({ members, onExpand }) {
+  return (
+    <motion.div
+      className="flex flex-col items-center gap-3 mt-10"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 8 }}
+      transition={{ duration: 0.35 }}
+    >
+      <button
+        onClick={onExpand}
+        className="flex items-center focus:outline-none group"
+        style={{ gap: 0 }}
+        title="Expand team view"
+      >
+        {members.map((member, i) => (
+          <motion.div
+            key={member.position}
+            className="rounded-full overflow-hidden flex-shrink-0"
+            style={{
+              width: 48,
+              height: 48,
+              marginLeft: i === 0 ? 0 : '-14px',
+              zIndex: members.length - i,
+              border: '2px solid rgba(255,255,255,0.5)',
+              position: 'relative',
+            }}
+            whileHover={{ scale: 1.12, zIndex: 30, y: -3 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          >
+            <img
+              src={avatarSrc(member)}
+              alt={member.name}
+              draggable={false}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </motion.div>
+        ))}
+        <motion.div
+          className="rounded-full flex items-center justify-center flex-shrink-0 font-bold text-white text-xs"
+          style={{
+            width: 48,
+            height: 48,
+            marginLeft: '-14px',
+            zIndex: 0,
+            background: 'rgba(255,255,255,0.15)',
+            border: '2px solid rgba(255,255,255,0.35)',
+          }}
+          whileHover={{ scale: 1.1, y: -3 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+          </svg>
+        </motion.div>
+      </button>
+      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+        Click to expand team view
+      </p>
+    </motion.div>
+  );
+}
+
 export default function ExecutiveBoard() {
   const [selectedMember, setSelectedMember] = useState(null);
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <main style={{ paddingTop: '60px', background: '#f8fafc', minHeight: '100vh' }}>
@@ -455,17 +442,36 @@ export default function ExecutiveBoard() {
             The dedicated leaders driving SHPE Austin's mission forward — empowering Hispanic engineers and building a thriving community in the heart of Texas.
           </p>
 
-          <AvatarGroup members={board} onSelect={setSelectedMember} />
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
-            className="mt-4 text-xs"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
-          >
-            Tap an avatar to view their profile
-          </motion.p>
+          <AnimatePresence mode="wait">
+            {expanded ? (
+              <motion.div
+                key="radial"
+                className="flex justify-center mt-10"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={{ duration: 0.35 }}
+              >
+                <RadialIntro
+                  stageSize={340}
+                  imageSize={58}
+                  onCollapse={() => setExpanded(false)}
+                  orbitItems={board.map((member, i) => ({
+                    id: i,
+                    name: member.name,
+                    src: avatarSrc(member),
+                    onClick: () => setSelectedMember(member),
+                  }))}
+                />
+              </motion.div>
+            ) : (
+              <CollapsedAvatarRow
+                key="collapsed"
+                members={board}
+                onExpand={() => setExpanded(true)}
+              />
+            )}
+          </AnimatePresence>
         </motion.div>
       </section>
 
