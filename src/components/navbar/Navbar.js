@@ -30,7 +30,7 @@ export function Navbar() {
         { label: "Membership", href: "/membership", ariaLabel: "Membership page" },
         { label: "Donations", href: "/donations", ariaLabel: "Donations page" },
         { label: "Our Sponsors", href: "/sponsors", ariaLabel: "Our Sponsors page" },
-        { label: "Event Check In", href: "https://script.google.com/macros/s/AKfycbxpwWJla2HFB6Dh9TeZ4QULK0jSJd1nT6vCl31XDno6XT_LXtXA254fWELauB5U1VJY/exec", ariaLabel: "Event check in" },
+        { label: "Event Check In", href: "https://script.google.com/macros/s/AKfycbzc3rXQ2fuJixy83MCfVvDLMk1PABBNiYn_2AQI8D7GYGDy1wCN_DqUv6vnQYhH81SF/exec", ariaLabel: "Event check in" },
       ]
     },
   ];

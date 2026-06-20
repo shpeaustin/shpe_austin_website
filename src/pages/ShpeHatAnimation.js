@@ -87,8 +87,8 @@ export default function ShpeHatAnimation({ onComplete, speed = 1 }) {
       ctx.clearRect(0, 0, SCENE_W, SCENE_H);
       let x, y, rot, strAlpha;
 
-      if (raw < 0.22) {
-        const pt = raw / 0.22;
+      if (raw < 0.10) {
+        const pt = raw / 0.10;
         const sway = Math.sin(pt * Math.PI * 2.5) * 20 * (1 - pt * 0.2);
         x = HAT_START_X + sway;
         y = HAT_START_Y + 10 + Math.sin(pt * Math.PI * 1.5) * 5;
@@ -96,7 +96,7 @@ export default function ShpeHatAnimation({ onComplete, speed = 1 }) {
         strAlpha = 1;
 
       } else if (raw < 0.62) {
-        const pt = (raw - 0.22) / 0.40;
+        const pt = (raw - 0.10) / 0.52;
         x = lerp(HAT_START_X, HAT_FINAL_X, easeInOutSine(pt));
         y = lerp(HAT_START_Y + 10, HAT_FINAL_Y + 15, easeInQuart(pt));
         rot = lerp(0, LAND_ROT, easeInOutSine(pt));

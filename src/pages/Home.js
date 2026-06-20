@@ -4,27 +4,12 @@ import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn } from 'react-icons/f
 import { Users, HandHeart, BookOpen, Shield } from 'lucide-react';
 import ShpeHatAnimation from './ShpeHatAnimation';
 
-const textVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.2, delayChildren: 0.1 } },
-};
-
-const lineVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' } },
-};
-
-const gradientStyle = {
-  letterSpacing: '0.2em',
-  fontSize: 'clamp(1.5rem, 4vw, 3rem)',
-  fontWeight: 700,
-  textTransform: 'uppercase',
-  background: 'linear-gradient(135deg, #D33A02, #FD652F, #0070C0, #001F5B, #D33A02, #FD652F)',
-  backgroundSize: '300% 300%',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  backgroundClip: 'text',
-  animation: 'gradientShift 4s ease infinite',
+const charVariants = {
+  hidden: { opacity: 0, y: 40, rotateX: -90 },
+  visible: (i) => ({
+    opacity: 1, y: 0, rotateX: 0,
+    transition: { delay: i * 0.055, duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+  }),
 };
 
 const fadeUp = {
@@ -81,12 +66,62 @@ const socialLinks = [
   { Icon: FaLinkedinIn, href: 'https://linkedin.com', label: 'LinkedIn', color: '#0A66C2' },
 ];
 
+// ── AMBILIGHT HOOK ────────────────────────────────────────────────────────────
+function useAmbientVideo(videoRef, active) {
+  const [colors, setColors] = useState({ top: '#000', bottom: '#000', left: '#000', right: '#000' });
+  const canvasRef = useRef(null);
+  const frameRef = useRef(0);
+
+  useEffect(() => {
+    if (!active) return;
+    if (!canvasRef.current) canvasRef.current = document.createElement('canvas');
+    const canvas = canvasRef.current;
+    canvas.width = 16;
+    canvas.height = 9;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    let animId;
+
+    function avg(data, indices) {
+      let r = 0, g = 0, b = 0;
+      indices.forEach(i => { r += data[i]; g += data[i + 1]; b += data[i + 2]; });
+      const n = indices.length;
+      return `rgb(${r / n | 0},${g / n | 0},${b / n | 0})`;
+    }
+
+    function tick() {
+      animId = requestAnimationFrame(tick);
+      frameRef.current++;
+      if (frameRef.current % 3 !== 0) return;
+      const v = videoRef.current;
+      if (!v || v.paused || v.readyState < 2) return;
+      ctx.drawImage(v, 0, 0, 16, 9);
+      const d = ctx.getImageData(0, 0, 16, 9).data;
+      const row = (y) => Array.from({ length: 16 }, (_, x) => (y * 16 + x) * 4);
+      const col = (x) => Array.from({ length: 9 }, (_, y) => (y * 16 + x) * 4);
+      setColors({
+        top:    avg(d, row(0)),
+        bottom: avg(d, row(8)),
+        left:   avg(d, col(0)),
+        right:  avg(d, col(15)),
+      });
+    }
+
+    animId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animId);
+  }, [videoRef, active]);
+
+  return colors;
+}
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
 export default function Home() {
   const alreadyPlayed = sessionStorage.getItem('introPlayed');
   const [stage, setStage] = useState(alreadyPlayed ? 'done' : 'video');
   const [fadeOut, setFadeOut] = useState(false);
   const [hatDone, setHatDone] = useState(!!alreadyPlayed);
   const videoRef = useRef(null);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
+  const ambient = useAmbientVideo(videoRef, stage === 'video' && isMobile);
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.playbackRate = 1.5;
@@ -114,35 +149,183 @@ export default function Home() {
           0%   { background-position: -200% 0; }
           100% { background-position: 200% 0; }
         }
+        @keyframes textShimmer {
+          0%   { background-position: -300% center; }
+          100% { background-position: 300% center; }
+        }
+        @keyframes rippleExpand {
+          0%   { transform: scale(0); opacity: 0.5; }
+          100% { transform: scale(6); opacity: 0; }
+        }
+        @keyframes flashFade {
+          0%   { opacity: 1; }
+          100% { opacity: 0; }
+        }
         .intro-video { object-fit: cover; }
-        .hat-margin  { margin-top: -80px; }
+        .hat-margin  { margin-top: -120px; }
         @media (max-width: 640px) {
           .intro-video { object-fit: contain; }
-          .hat-margin  { margin-top: -20px; }
+          .hat-margin  { margin-top: -50px; }
         }
       `}</style>
 
       {/* ── INTRO: VIDEO ── */}
       {stage === 'video' && (
-        <div style={{ transition: 'opacity 0.6s ease', opacity: fadeOut ? 0 : 1, width: '100%', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-          <video ref={videoRef} src={require('../assets/shpe_animated_video.mp4')} autoPlay muted playsInline onEnded={handleVideoEnd} className="intro-video" style={{ width: '100%', height: '100%' }} />
+        <div style={{
+          transition: 'opacity 0.6s ease',
+          opacity: fadeOut ? 0 : 1,
+          width: '100%', height: '100vh',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          overflow: 'hidden',
+          background: isMobile
+            ? `radial-gradient(ellipse 80% 40% at top, ${ambient.top}, transparent),
+               radial-gradient(ellipse 80% 40% at bottom, ${ambient.bottom}, transparent),
+               radial-gradient(ellipse 30% 80% at left, ${ambient.left}, transparent),
+               radial-gradient(ellipse 30% 80% at right, ${ambient.right}, transparent),
+               #000`
+            : '#000',
+          ...(isMobile && {
+            WebkitMaskImage: 'radial-gradient(ellipse 88% 82% at center, black 45%, transparent 100%)',
+            maskImage: 'radial-gradient(ellipse 88% 82% at center, black 45%, transparent 100%)',
+          }),
+        }}>
+          <video ref={videoRef} src={require('../assets/logos/shpe_animated_video.mp4')} autoPlay muted playsInline onEnded={handleVideoEnd} className="intro-video" style={{ width: '100%', height: '100%' }} />
         </div>
       )}
 
       {/* ── INTRO: HAT ANIMATION ── */}
       {(stage === 'hat' || stage === 'done') && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 0 }}>
+        <motion.div
+          initial={stage === 'hat' ? { opacity: 0, scale: 1.04 } : false}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+          position: 'relative', display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 0,
+          background: '#ffffff', overflow: 'hidden',
+        }}>
+          {/* flash overlay — only plays on first entrance from video */}
+          {stage === 'hat' && (
+            <>
+              <div style={{
+                position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none',
+                background: 'white',
+                animation: 'flashFade 0.55s ease-out forwards',
+              }} />
+              <div style={{
+                position: 'absolute', zIndex: 49, pointerEvents: 'none',
+                width: 300, height: 300, borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(0,112,192,0.18) 0%, transparent 70%)',
+                top: '50%', left: '50%', marginTop: -150, marginLeft: -150,
+                animation: 'rippleExpand 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s forwards',
+              }} />
+              <div style={{
+                position: 'absolute', zIndex: 49, pointerEvents: 'none',
+                width: 300, height: 300, borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(253,101,47,0.12) 0%, transparent 70%)',
+                top: '50%', left: '50%', marginTop: -150, marginLeft: -150,
+                animation: 'rippleExpand 1.1s cubic-bezier(0.22,1,0.36,1) 0.25s forwards',
+              }} />
+            </>
+          )}
+
+          {/* very soft SHPE color blushes — barely visible on white */}
+          <div style={{ position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: '#0070C0', top: '-200px', left: '-200px', filter: 'blur(160px)', opacity: 0.06, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: '#FD652F', bottom: '-160px', right: '-160px', filter: 'blur(140px)', opacity: 0.07, pointerEvents: 'none' }} />
+
+          {/* top label */}
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.7 }}
+            style={{ position: 'absolute', top: 88, display: 'flex', alignItems: 'center', gap: 10 }}
+          >
+            <div style={{ width: 24, height: 1, background: '#d1d5db' }} />
+            <div style={{ width: 24, height: 1, background: '#d1d5db' }} />
+          </motion.div>
+
+          {/* "Bienvenido a" text */}
           <AnimatePresence>
             {hatDone && (
-              <motion.div variants={textVariants} initial="hidden" animate="visible" style={{ textAlign: 'center' }}>
-                <motion.p variants={lineVariants} style={gradientStyle}>Bienvenido a</motion.p>
+              <div style={{ textAlign: 'center', position: 'relative', zIndex: 1, perspective: '600px' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '0.05em' }}>
+                  {'Bienvenido a'.split('').map((char, i) => (
+                    <motion.span
+                      key={i}
+                      custom={i}
+                      variants={charVariants}
+                      initial="hidden"
+                      animate="visible"
+                      style={{
+                        display: 'inline-block',
+                        fontSize: 'clamp(2rem, 5vw, 3.6rem)',
+                        fontWeight: 900,
+                        letterSpacing: char === ' ' ? '0.3em' : '-0.01em',
+                        textTransform: 'uppercase',
+                        background: 'linear-gradient(110deg, #001F5B 0%, #0070C0 30%, #FD652F 50%, #D33A02 65%, #0070C0 80%, #001F5B 100%)',
+                        backgroundSize: '300% auto',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
+                        animation: `textShimmer 5s linear infinite`,
+                        animationDelay: `${i * 0.04}s`,
+                        lineHeight: 1,
+                      }}
+                    >
+                      {char === ' ' ? ' ' : char}
+                    </motion.span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </AnimatePresence>
+
+          {/* hat animation */}
+          <div className="hat-margin" style={{ position: 'relative', zIndex: 1 }}>
+            <ShpeHatAnimation onComplete={handleHatComplete} speed={stage === 'done' ? 999 : 1.4} />
+          </div>
+
+          {/* chapter tagline — fades in after hat lands */}
+          <AnimatePresence>
+            {hatDone && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+                style={{ position: 'relative', zIndex: 1, marginTop: 20, display: 'flex', alignItems: 'center', gap: 10 }}
+              >
+                <div style={{ width: 32, height: 2, borderRadius: 999, background: 'linear-gradient(90deg, #001F5B, #0070C0)' }} />
+                <span style={{ color: '#6b7280', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                  Austin, TX
+                </span>
+                <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#FD652F' }} />
+                <span style={{ color: '#6b7280', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                  Est. 1994
+                </span>
+                <div style={{ width: 32, height: 2, borderRadius: 999, background: 'linear-gradient(90deg, #D33A02, #FD652F)' }} />
               </motion.div>
             )}
           </AnimatePresence>
-          <div className="hat-margin">
-            <ShpeHatAnimation onComplete={handleHatComplete} speed={stage === 'done' ? 999 : 1.4} />
-          </div>
-        </div>
+
+          {/* scroll hint */}
+          <AnimatePresence>
+            {hatDone && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1, duration: 0.8 }}
+                style={{ position: 'absolute', bottom: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}
+              >
+                <span style={{ color: '#d1d5db', fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Scroll</span>
+                <motion.div
+                  animate={{ y: [0, 7, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                  style={{ width: 1, height: 36, background: 'linear-gradient(180deg, #d1d5db, transparent)' }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       )}
 
       {/* ══════════════════════════════════════
