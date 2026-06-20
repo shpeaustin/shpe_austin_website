@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { createClient } from 'contentful';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn } from 'react-icons/fa';
 import { Users, HandHeart, BookOpen, Shield } from 'lucide-react';
@@ -36,30 +37,70 @@ const valueCards = [
   { label: 'Resilience', Icon: Shield, color: '#FD652F', accent: '#D33A02', desc: 'Rising above challenges with strength and determination.' },
 ];
 
-const events = [
-  {
-    title: 'SHPE Social — FIFA World Cup Watch Party',
-    date: 'June 18th · 6:00 PM CT',
-    tag: 'Social Event',
-    description: 'Join us for the Mexico vs South Korea match! RSVP for address details and updates.',
-    border: '#FD652F',
-    tagBg: 'rgba(253,101,47,0.1)',
-    tagColor: '#FD652F',
-    rsvp: '#',
-    flyer: null,
-  },
-  {
-    title: 'Virtual Event with ARM & SHPE Phoenix',
-    date: 'June 18th · 6:00 PM CT',
-    tag: 'Virtual Event',
-    description: 'Join SHPE Phoenix Professional and Unidos@ARM alongside Platinum Sponsor ARM — a semiconductor and software design company growing new facilities in Austin! Zoom link sent via RSVP email.',
-    border: '#0070C0',
-    tagBg: 'rgba(0,112,192,0.1)',
-    tagColor: '#0070C0',
-    rsvp: '#',
-    flyer: null,
-  },
-];
+const THEME_MAP = {
+  'social event':   { border: '#FD652F', tagBg: 'rgba(253,101,47,0.1)',  tagColor: '#FD652F' },
+  'virtual event':  { border: '#0070C0', tagBg: 'rgba(0,112,192,0.1)',   tagColor: '#0070C0' },
+  'workshop':       { border: '#001F5B', tagBg: 'rgba(0,31,91,0.1)',     tagColor: '#001F5B' },
+  'networking':     { border: '#72A9BE', tagBg: 'rgba(114,169,190,0.1)', tagColor: '#72A9BE' },
+  'default':        { border: '#0070C0', tagBg: 'rgba(0,112,192,0.1)',   tagColor: '#0070C0' },
+};
+
+function getTheme(tag) {
+  return THEME_MAP[(tag ?? '').toLowerCase()] ?? THEME_MAP.default;
+}
+
+function formatEventDate(isoString) {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  const datePart = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'America/Chicago' });
+  const timePart = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Chicago' });
+  return `${datePart} · ${timePart} CT`;
+}
+
+const contentfulClient =
+  process.env.REACT_APP_CONTENTFUL_SPACE_ID && process.env.REACT_APP_CONTENTFUL_ACCESS_TOKEN
+    ? createClient({
+        space: process.env.REACT_APP_CONTENTFUL_SPACE_ID,
+        accessToken: process.env.REACT_APP_CONTENTFUL_ACCESS_TOKEN,
+      })
+    : null;
+
+function useEvents() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!contentfulClient) {
+      setLoading(false);
+      return;
+    }
+    contentfulClient
+      .getEntries({ content_type: 'event', order: 'fields.date' })
+      .then(res => {
+        setEvents(
+          res.items.map(item => {
+            const theme = getTheme(item.fields.tag);
+            return {
+              title: item.fields.title,
+              date: formatEventDate(item.fields.date),
+              tag: item.fields.tag,
+              description: item.fields.description,
+              rsvp: item.fields.rsvp ?? '#',
+              flyer: item.fields.flyer?.fields?.file?.url
+                ? `https:${item.fields.flyer.fields.file.url}`
+                : null,
+              ...theme,
+            };
+          })
+        );
+      })
+      .catch(err => setError(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { events, loading, error };
+}
 
 const socialLinks = [
   { Icon: FaFacebookF, href: 'https://facebook.com', label: 'Facebook', color: '#1877F2' },
@@ -117,7 +158,22 @@ function useAmbientVideo(videoRef, active) {
 
 // ── HOME ──────────────────────────────────────────────────────────────────────
 export default function Home() {
+  const { events, loading: eventsLoading, error: eventsError } = useEvents();
+  const [lightboxSrc, setLightboxSrc] = useState(null);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [carouselPaused, setCarouselPaused] = useState(false);
   const alreadyPlayed = sessionStorage.getItem('introPlayed');
+
+  useEffect(() => {
+    if (events.length <= 1 || carouselPaused) return;
+    const id = setInterval(() => setActiveIdx(i => (i + 1) % events.length), 5000);
+    return () => clearInterval(id);
+  }, [events.length, carouselPaused]);
+
+  // Resume carousel when lightbox is closed
+  useEffect(() => {
+    if (!lightboxSrc) setCarouselPaused(false);
+  }, [lightboxSrc]);
   const [stage, setStage] = useState(alreadyPlayed ? 'done' : 'video');
   const [fadeOut, setFadeOut] = useState(false);
   const [hatDone, setHatDone] = useState(!!alreadyPlayed);
@@ -168,6 +224,12 @@ export default function Home() {
         @media (max-width: 640px) {
           .intro-video { object-fit: contain; }
           .hat-margin  { margin-top: -50px; }
+        }
+        .flyer-hover-overlay:hover { background: rgba(0,0,0,0.35) !important; }
+        .flyer-hover-overlay:hover .flyer-hover-label { opacity: 1 !important; }
+        .event-flyer-panel { width: 38%; min-width: 200px; min-height: 240px; }
+        @media (max-width: 640px) {
+          .event-flyer-panel { width: 100%; min-width: unset; min-height: 220px; }
         }
       `}</style>
 
@@ -414,65 +476,246 @@ export default function Home() {
           </h2>
         </motion.div>
 
-        <div className="flex flex-wrap gap-6 max-w-5xl mx-auto justify-center mb-10">
-          {events.map((ev, i) => (
+        {/* Lightbox */}
+        <AnimatePresence>
+          {lightboxSrc && (
             <motion.div
-              key={ev.title}
-              initial={{ opacity: 0, x: i === 0 ? -40 : 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: i * 0.1 }}
-              whileHover={{ y: -6 }}
-              className="flex-1 rounded-2xl overflow-hidden"
-              style={{ minWidth: '280px', maxWidth: '460px', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', borderTop: `4px solid ${ev.border}`, background: '#fff' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setLightboxSrc(null)}
+              style={{
+                position: 'fixed', inset: 0, zIndex: 1000,
+                background: 'rgba(0,0,0,0.85)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '24px', cursor: 'zoom-out',
+              }}
             >
-              {/* Flyer image */}
-              <div
-                className="w-full overflow-hidden flex items-center justify-center"
+              <motion.img
+                src={lightboxSrc}
+                alt="Event flyer"
+                initial={{ scale: 0.92, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.92, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 12, boxShadow: '0 32px 80px rgba(0,0,0,0.5)', objectFit: 'contain' }}
+                onClick={e => e.stopPropagation()}
+              />
+              <button
+                onClick={() => setLightboxSrc(null)}
                 style={{
-                  height: '220px',
-                  background: ev.flyer
-                    ? 'transparent'
-                    : `linear-gradient(135deg, ${ev.border}18 0%, ${ev.border}08 100%)`,
-                  borderBottom: `1px solid ${ev.border}22`,
+                  position: 'absolute', top: 20, right: 24,
+                  background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%',
+                  width: 40, height: 40, cursor: 'pointer', color: '#fff', fontSize: 20,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
               >
-                {ev.flyer ? (
-                  <img
-                    src={ev.flyer}
-                    alt={`${ev.title} flyer`}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center gap-2" style={{ color: `${ev.border}55` }}>
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                      <circle cx="8.5" cy="8.5" r="1.5" />
-                      <path d="M21 15l-5-5L5 21" />
-                    </svg>
-                    <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Flyer Coming Soon</span>
+                ×
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {eventsLoading && (
+          <div className="max-w-4xl mx-auto mb-10">
+            <div className="rounded-2xl overflow-hidden flex flex-wrap" style={{ background: '#f3f4f6', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', minHeight: 260 }}>
+              <div className="event-flyer-panel" style={{ background: '#e5e7eb', flexShrink: 0 }} />
+              <div className="p-8 flex flex-col gap-3 flex-1">
+                <div style={{ height: 12, width: '35%', background: '#e5e7eb', borderRadius: 999 }} />
+                <div style={{ height: 20, width: '75%', background: '#e5e7eb', borderRadius: 999 }} />
+                <div style={{ height: 12, width: '100%', background: '#e5e7eb', borderRadius: 999 }} />
+                <div style={{ height: 12, width: '60%', background: '#e5e7eb', borderRadius: 999 }} />
+                <div style={{ height: 38, width: 110, background: '#e5e7eb', borderRadius: 999, marginTop: 8 }} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {eventsError && (
+          <div className="text-center mb-10" style={{ color: '#9ca3af', fontSize: '0.95rem' }}>
+            Unable to load events right now. Check back soon!
+          </div>
+        )}
+
+        {!eventsLoading && !eventsError && events.length === 0 && (
+          <div className="text-center mb-10" style={{ color: '#9ca3af', fontSize: '0.95rem' }}>
+            No upcoming events at the moment — check back soon!
+          </div>
+        )}
+
+        {!eventsLoading && !eventsError && events.length > 0 && (() => {
+          const ev = events[activeIdx];
+          const stackCount = Math.min(events.length - 1, 2);
+          // peek cards: the next 1-2 events shown behind
+          const peekCards = Array.from({ length: stackCount }, (_, d) => {
+            const peekIdx = (activeIdx + d + 1) % events.length;
+            return events[peekIdx];
+          });
+
+          return (
+            <div className="max-w-4xl mx-auto mb-10">
+              {/* Stack wrapper — extra bottom padding so peek cards are visible */}
+              <div
+                style={{ position: 'relative', paddingBottom: stackCount * 14 }}
+                onMouseEnter={() => setCarouselPaused(true)}
+                onMouseLeave={() => { if (!lightboxSrc) setCarouselPaused(false); }}
+              >
+                {/* Peek cards (actual next event previews, not just grey boxes) */}
+                {peekCards.map((peek, d) => (
+                  <div
+                    key={peek.title + d}
+                    style={{
+                      position: 'absolute',
+                      bottom: -(d + 1) * 14,
+                      left: (d + 1) * 18,
+                      right: (d + 1) * 18,
+                      height: '100%',
+                      borderRadius: 18,
+                      background: '#fff',
+                      borderLeft: `5px solid ${peek.border}`,
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                      zIndex: stackCount - d,
+                      overflow: 'hidden',
+                      opacity: d === 0 ? 0.55 : 0.3,
+                      transform: `scale(${1 - (d + 1) * 0.02})`,
+                      transformOrigin: 'bottom center',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    {/* Blurred flyer preview so you can see it's a different event */}
+                    {peek.flyer && (
+                      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${peek.flyer})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(2px)', opacity: 0.4 }} />
+                    )}
+                    <div style={{ position: 'absolute', top: 16, left: 20, display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <div style={{ height: 10, width: 60, borderRadius: 999, background: peek.border, opacity: 0.5 }} />
+                      <div style={{ height: 8, width: 80, borderRadius: 999, background: '#e5e7eb' }} />
+                    </div>
                   </div>
-                )}
+                ))}
+
+                {/* Active card */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeIdx}
+                    initial={{ opacity: 0, y: -28, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 28, scale: 0.97 }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    className="rounded-2xl overflow-hidden"
+                    style={{
+                      position: 'relative', zIndex: stackCount + 1,
+                      display: 'flex', flexWrap: 'wrap',
+                      boxShadow: '0 12px 40px rgba(0,0,0,0.14)',
+                      borderLeft: `5px solid ${ev.border}`,
+                      background: '#fff',
+                    }}
+                  >
+                    {/* Flyer panel */}
+                    <div
+                      className="event-flyer-panel"
+                      style={{
+                        flexShrink: 0,
+                        background: ev.flyer
+                          ? 'transparent'
+                          : `linear-gradient(135deg, ${ev.border}18 0%, ${ev.border}06 100%)`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        position: 'relative', overflow: 'hidden',
+                        cursor: ev.flyer ? 'zoom-in' : 'default',
+                      }}
+                      onClick={() => {
+                        if (ev.flyer) {
+                          setLightboxSrc(ev.flyer);
+                          setCarouselPaused(true);
+                        }
+                      }}
+                    >
+                      {ev.flyer ? (
+                        <>
+                          <img
+                            src={ev.flyer}
+                            alt={`${ev.title} flyer`}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                          />
+                          <div className="flyer-hover-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0)', transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span className="flyer-hover-label" style={{ background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '6px 14px', borderRadius: 999, opacity: 0, transition: 'opacity 0.2s' }}>View Flyer</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2" style={{ color: `${ev.border}55` }}>
+                          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <circle cx="8.5" cy="8.5" r="1.5" />
+                            <path d="M21 15l-5-5L5 21" />
+                          </svg>
+                          <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Flyer Coming Soon</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info panel */}
+                    <div className="p-8 flex flex-col justify-center" style={{ flex: 1, minWidth: 240 }}>
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: ev.tagBg, color: ev.tagColor }}>{ev.tag}</span>
+                        <span className="text-xs font-semibold" style={{ color: '#9ca3af' }}>{ev.date}</span>
+                      </div>
+                      <h3 className="font-black text-xl leading-snug mb-3" style={{ color: '#001F5B' }}>{ev.title}</h3>
+                      <p className="text-sm leading-relaxed mb-6" style={{ color: '#6b7280' }}>{ev.description}</p>
+                      <div className="flex gap-3 flex-wrap">
+                        <a
+                          href={ev.rsvp}
+                          className="inline-block font-bold text-sm rounded-full px-6 py-2.5 transition-all duration-200 hover:opacity-85 hover:-translate-y-0.5"
+                          style={{ background: ev.border, color: '#fff', textDecoration: 'none' }}
+                        >
+                          RSVP Here
+                        </a>
+                        {ev.flyer && (
+                          <button
+                            onClick={() => { setLightboxSrc(ev.flyer); setCarouselPaused(true); }}
+                            className="font-bold text-sm rounded-full px-6 py-2.5 transition-all duration-200 hover:-translate-y-0.5"
+                            style={{ background: 'transparent', border: `2px solid ${ev.border}`, color: ev.border, cursor: 'pointer' }}
+                          >
+                            View Flyer
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
               </div>
 
-              <div className="p-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: ev.tagBg, color: ev.tagColor }}>{ev.tag}</span>
-                  <span className="text-xs font-semibold" style={{ color: '#9ca3af' }}>{ev.date}</span>
+              {/* Dot indicators + paused badge */}
+              {events.length > 1 && (
+                <div className="flex justify-center items-center gap-3 mt-6">
+                  {carouselPaused && (
+                    <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9ca3af' }}>paused</span>
+                  )}
+                  {events.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setActiveIdx(i); setCarouselPaused(true); }}
+                      style={{
+                        width: i === activeIdx ? 24 : 8,
+                        height: 8, borderRadius: 999, border: 'none', cursor: 'pointer',
+                        background: i === activeIdx ? events[i].border : '#d1d5db',
+                        transition: 'all 0.3s ease',
+                        padding: 0,
+                      }}
+                    />
+                  ))}
+                  {carouselPaused && (
+                    <button
+                      onClick={() => setCarouselPaused(false)}
+                      style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                    >
+                      resume
+                    </button>
+                  )}
                 </div>
-                <h3 className="font-black text-lg leading-snug mb-3" style={{ color: '#001F5B' }}>{ev.title}</h3>
-                <p className="text-sm leading-relaxed mb-6" style={{ color: '#6b7280' }}>{ev.description}</p>
-                <a
-                  href={ev.rsvp}
-                  className="inline-block font-bold text-sm rounded-full px-6 py-2.5 transition-all duration-200 hover:opacity-85 hover:-translate-y-0.5"
-                  style={{ background: ev.border, color: '#fff', textDecoration: 'none' }}
-                >
-                  RSVP Here
-                </a>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              )}
+            </div>
+          );
+        })()}
 
         <motion.div {...fadeUp} className="text-center">
           <a
