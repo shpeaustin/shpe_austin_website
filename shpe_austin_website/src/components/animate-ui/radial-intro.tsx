@@ -13,7 +13,9 @@ import {
 type OrbitItem = {
   id: number;
   name: string;
+  position?: string;
   src: string;
+  photoPosition?: string;
   onClick?: () => void;
 };
 
@@ -21,6 +23,8 @@ interface ComponentProps {
   orbitItems: OrbitItem[];
   stageSize?: number;
   imageSize?: number;
+  showLabels?: boolean;
+  centerLabel?: React.ReactNode;
   onCollapse?: () => void;
 }
 
@@ -51,6 +55,8 @@ function RadialIntro({
   orbitItems,
   stageSize = 320,
   imageSize = 60,
+  showLabels = false,
+  centerLabel,
   onCollapse,
 }: ComponentProps) {
   const step = 360 / orbitItems.length;
@@ -62,6 +68,7 @@ function RadialIntro({
 
     const arms = qsa(root, '[data-arm]');
     const imgs = qsa(root, '[data-arm-image]');
+    const labels = qsa(root, '[data-arm-label]');
     const stops: Array<() => void> = [];
 
     delay(() => animate(imgs, { top: 0 }, transition), 250);
@@ -75,6 +82,11 @@ function RadialIntro({
       ...imgs.map((img): [Element, Record<string, any>, any] => [
         img,
         { rotate: -angleOf(armOfImg(img)!), opacity: 1 },
+        { ...transition, at: 0 },
+      ]),
+      ...labels.map((lbl): [Element, Record<string, any>, any] => [
+        lbl,
+        { rotate: -angleOf(armOfImg(lbl)!), opacity: 1 },
         { ...transition, at: 0 },
       ]),
     ];
@@ -91,11 +103,14 @@ function RadialIntro({
       imgs.forEach((img) => {
         const arm = armOfImg(img);
         const angle = arm ? angleOf(arm) : 0;
-        const ctrl = animate(
-          img,
-          { rotate: [-angle, -angle - 360] },
-          spinConfig,
-        );
+        const ctrl = animate(img, { rotate: [-angle, -angle - 360] }, spinConfig);
+        stops.push(() => ctrl.cancel());
+      });
+
+      labels.forEach((lbl) => {
+        const arm = armOfImg(lbl);
+        const angle = arm ? angleOf(arm) : 0;
+        const ctrl = animate(lbl, { rotate: [-angle, -angle - 360] }, spinConfig);
         stops.push(() => ctrl.cancel());
       });
     }, 1300);
@@ -105,6 +120,7 @@ function RadialIntro({
   }, []);
 
   const center = stageSize / 2;
+  const labelOffset = imageSize / 2 + 14;
 
   return (
     <LayoutGroup>
@@ -123,6 +139,7 @@ function RadialIntro({
             data-angle={i * step}
             layoutId={`arm-${item.id}`}
           >
+            {/* avatar */}
             <motion.img
               data-arm-image
               className="rounded-full object-cover absolute left-1/2 top-1/2 aspect-square -translate-x-1/2 select-none"
@@ -132,20 +149,58 @@ function RadialIntro({
                 opacity: i === 0 ? 1 : 0,
                 cursor: item.onClick ? 'pointer' : 'default',
                 pointerEvents: 'auto',
+                objectPosition: item.photoPosition ?? 'center',
+                border: '2px solid rgba(255,255,255,0.25)',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
               }}
               src={item.src}
               alt={item.name}
               draggable={false}
               layoutId={`arm-img-${item.id}`}
               onClick={item.onClick}
-              whileHover={item.onClick ? { scale: 1.15 } : undefined}
+              whileHover={item.onClick ? { scale: 1.18, boxShadow: '0 0 0 3px rgba(255,255,255,0.5)' } : undefined}
               title={item.name}
             />
+
+            {/* name label — only rendered when showLabels is true */}
+            {showLabels && (
+              <motion.div
+                data-arm-label
+                className="absolute left-1/2 -translate-x-1/2 select-none pointer-events-none"
+                style={{
+                  top: `calc(50% + ${labelOffset}px)`,
+                  opacity: 0,
+                  textAlign: 'center',
+                  width: 110,
+                  marginLeft: -55,
+                  left: '50%',
+                }}
+              >
+                <p className="font-black text-white leading-tight" style={{ fontSize: 10, textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>
+                  {item.name.split(' ')[0]}
+                </p>
+                {item.position && (
+                  <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.5)', lineHeight: 1.3 }}>
+                    {item.position}
+                  </p>
+                )}
+              </motion.div>
+            )}
           </motion.div>
         ))}
 
-        {/* X to collapse back to the stacked row */}
-        {onCollapse && (
+        {/* center content */}
+        {centerLabel ? (
+          <motion.div
+            className="absolute flex items-center justify-center"
+            style={{ left: center - 52, top: center - 52, width: 104, height: 104, zIndex: orbitItems.length + 1 }}
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.4, type: 'spring', stiffness: 300, damping: 22 }}
+          >
+            {centerLabel}
+          </motion.div>
+        ) : onCollapse ? (
           <motion.button
             onClick={onCollapse}
             initial={{ opacity: 0, scale: 0 }}
@@ -153,10 +208,8 @@ function RadialIntro({
             transition={{ delay: 1.4, type: 'spring', stiffness: 300, damping: 22 }}
             className="absolute flex items-center justify-center rounded-full focus:outline-none"
             style={{
-              width: 36,
-              height: 36,
-              left: center - 18,
-              top: center - 18,
+              width: 36, height: 36,
+              left: center - 18, top: center - 18,
               zIndex: orbitItems.length + 1,
               background: 'rgba(255,255,255,0.15)',
               border: '2px solid rgba(255,255,255,0.35)',
@@ -171,7 +224,7 @@ function RadialIntro({
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </motion.button>
-        )}
+        ) : null}
       </motion.div>
     </LayoutGroup>
   );
