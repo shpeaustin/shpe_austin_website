@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/shpe_austin_website/static/css/main.4bacc245.css",
-    "main.js": "/shpe_austin_website/static/js/main.75b13eb8.js",
+    "main.js": "/shpe_austin_website/static/js/main.e20bc004.js",
     "static/js/453.170c19b2.chunk.js": "/shpe_austin_website/static/js/453.170c19b2.chunk.js",
     "static/media/shpe_animated_video.mp4": "/shpe_austin_website/static/media/shpe_animated_video.eb069c548c51a0d4d384.mp4",
     "static/media/anamaria_torres.jpg": "/shpe_austin_website/static/media/anamaria_torres.696c193b28fc02e5a21e.jpg",
@@ -22,11 +22,11 @@
     "static/media/arm_logo.svg": "/shpe_austin_website/static/media/arm_logo.f165a329d3b5c96b1fae84c37c07b9fd.svg",
     "index.html": "/shpe_austin_website/index.html",
     "main.4bacc245.css.map": "/shpe_austin_website/static/css/main.4bacc245.css.map",
-    "main.75b13eb8.js.map": "/shpe_austin_website/static/js/main.75b13eb8.js.map",
+    "main.e20bc004.js.map": "/shpe_austin_website/static/js/main.e20bc004.js.map",
     "453.170c19b2.chunk.js.map": "/shpe_austin_website/static/js/453.170c19b2.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.4bacc245.css",
-    "static/js/main.75b13eb8.js"
+    "static/js/main.e20bc004.js"
   ]
 }
