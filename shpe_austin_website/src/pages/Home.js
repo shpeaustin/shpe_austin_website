@@ -56,8 +56,7 @@ function formatEventDate(isoString) {
   const timePart = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Chicago' });
   return `${datePart} · ${timePart} CT`;
 }
-console.log('SPACE:', process.env.REACT_APP_CONTENTFUL_SPACE_ID);
-console.log('TOKEN:', process.env.REACT_APP_CONTENTFUL_ACCESS_TOKEN);
+
 const contentfulClient =
   process.env.REACT_APP_CONTENTFUL_SPACE_ID && process.env.REACT_APP_CONTENTFUL_ACCESS_TOKEN
     ? createClient({
