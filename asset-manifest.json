@@ -1,0 +1,32 @@
+{
+  "files": {
+    "main.css": "/shpe_austin_website/static/css/main.4bacc245.css",
+    "main.js": "/shpe_austin_website/static/js/main.e4db89f3.js",
+    "static/js/453.170c19b2.chunk.js": "/shpe_austin_website/static/js/453.170c19b2.chunk.js",
+    "static/media/shpe_animated_video.mp4": "/shpe_austin_website/static/media/shpe_animated_video.eb069c548c51a0d4d384.mp4",
+    "static/media/anamaria_torres.jpg": "/shpe_austin_website/static/media/anamaria_torres.696c193b28fc02e5a21e.jpg",
+    "static/media/juan_ramirez.jpeg": "/shpe_austin_website/static/media/juan_ramirez.161fb1d73d48ebe52610.jpeg",
+    "static/media/How-to-become-a-member-in-Austin-SHPE-Professional-Chapter.pdf": "/shpe_austin_website/static/media/How-to-become-a-member-in-Austin-SHPE-Professional-Chapter.0b558990595506ef4a48.pdf",
+    "static/media/patricia_islas.jpg": "/shpe_austin_website/static/media/patricia_islas.ebe3a79465a5110fcbd8.jpg",
+    "static/media/jonathan_franco.jpg": "/shpe_austin_website/static/media/jonathan_franco.af588da0c157dfb59bef.jpg",
+    "static/media/noe_melchor.png": "/shpe_austin_website/static/media/noe_melchor.8de0ee31b7b75ae2e40b.png",
+    "static/media/luigi_medrano.jpg": "/shpe_austin_website/static/media/luigi_medrano.9ac0e5159ea9d717847c.jpg",
+    "static/media/marvin_andara.png": "/shpe_austin_website/static/media/marvin_andara.329b91a8fd89eae4a732.png",
+    "static/media/luis_ramirez.png": "/shpe_austin_website/static/media/luis_ramirez.0e1fd43f77576fa9205e.png",
+    "static/media/eugenia_rodriguez.jpeg": "/shpe_austin_website/static/media/eugenia_rodriguez.3c33cc9faa49d60e4a49.jpeg",
+    "static/media/susana_samayoa.jpg": "/shpe_austin_website/static/media/susana_samayoa.08aeb6bb5f46cda025da.jpg",
+    "static/media/2023-SHPE-Austin-990-N-3.pdf": "/shpe_austin_website/static/media/2023-SHPE-Austin-990-N-3.76ad183f6f08c0f9ddf7.pdf",
+    "static/media/2024-SHPE-Austin-990-N.pdf": "/shpe_austin_website/static/media/2024-SHPE-Austin-990-N.5112294601374a9c57d3.pdf",
+    "static/media/SHPE_austin_horiz_logo.png": "/shpe_austin_website/static/media/SHPE_austin_horiz_logo.a2dccc582aadb20a1219.png",
+    "static/media/SHPE_stacked_logo_national.png": "/shpe_austin_website/static/media/SHPE_stacked_logo_national.eb9e525f3bec3249e852.png",
+    "static/media/arm_logo.svg": "/shpe_austin_website/static/media/arm_logo.f165a329d3b5c96b1fae84c37c07b9fd.svg",
+    "index.html": "/shpe_austin_website/index.html",
+    "main.4bacc245.css.map": "/shpe_austin_website/static/css/main.4bacc245.css.map",
+    "main.e4db89f3.js.map": "/shpe_austin_website/static/js/main.e4db89f3.js.map",
+    "453.170c19b2.chunk.js.map": "/shpe_austin_website/static/js/453.170c19b2.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.4bacc245.css",
+    "static/js/main.e4db89f3.js"
+  ]
+}
