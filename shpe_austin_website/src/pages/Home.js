@@ -103,10 +103,10 @@ function useEvents() {
 }
 
 const socialLinks = [
-  { Icon: FaFacebookF, href: 'https://facebook.com', label: 'Facebook', color: '#1877F2' },
-  { Icon: FaTwitter, href: 'https://twitter.com', label: 'Twitter', color: '#1DA1F2' },
-  { Icon: FaInstagram, href: 'https://instagram.com', label: 'Instagram', color: '#E1306C' },
-  { Icon: FaLinkedinIn, href: 'https://linkedin.com', label: 'LinkedIn', color: '#0A66C2' },
+  { Icon: FaFacebookF, href: 'https://www.facebook.com/SHPEAustin/', label: 'Facebook', color: '#1877F2' },
+  { Icon: FaTwitter, href: 'https://www.facebook.com/SHPEAustin/', label: 'Twitter', color: '#1DA1F2' },
+  { Icon: FaInstagram, href: 'https://www.instagram.com/shpeaustin/', label: 'Instagram', color: '#E1306C' },
+  { Icon: FaLinkedinIn, href: 'https://www.linkedin.com/company/shpeaustin/', label: 'LinkedIn', color: '#0A66C2' },
 ];
 
 // ambilight glow that samples colors from whatever image is active
