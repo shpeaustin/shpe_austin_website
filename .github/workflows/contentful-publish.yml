@@ -2,7 +2,7 @@ name: Deploy on Contentful publish
 
 on:
   repository_dispatch:
-    types: [contentful_publish]
+    types: [publish-event]
 
 jobs:
   deploy:
