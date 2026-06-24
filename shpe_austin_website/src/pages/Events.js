@@ -209,12 +209,56 @@ function CategorySelector({ categories, active, onChange }) {
 
 // photo carousel for past event shots
 
-const slides = Array.from({ length: 8 }, (_, i) => ({ id: i, label: `Event Photo ${i + 1}` }));
+function PlaceholderSlide({ current, total }) {
+  return (
+    <div style={{
+      position: 'absolute', inset: 0,
+      background: 'linear-gradient(135deg, #001F5B 0%, #0a1a3a 60%, #0d0d1a 100%)',
+      overflow: 'hidden',
+    }}>
+      <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.12, 0.2, 0.12] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: '#0070C0', top: -100, left: -100, filter: 'blur(90px)', pointerEvents: 'none' }} />
+      <motion.div animate={{ scale: [1, 1.15, 1], opacity: [0.1, 0.18, 0.1] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+        style={{ position: 'absolute', width: 350, height: 350, borderRadius: '50%', background: '#FD652F', bottom: -80, right: -80, filter: 'blur(80px)', pointerEvents: 'none' }} />
 
-function Carousel() {
+      {[
+        { rotate: -14, x: '8%',  y: '12%', size: 80, delay: 0 },
+        { rotate: 10,  x: '78%', y: '8%',  size: 64, delay: 0.6 },
+        { rotate: -6,  x: '72%', y: '62%', size: 72, delay: 1.2 },
+        { rotate: 18,  x: '5%',  y: '62%', size: 60, delay: 0.9 },
+      ].map((p, i) => (
+        <motion.div key={i} animate={{ y: [0, -8, 0] }} transition={{ duration: 3.5 + i * 0.5, repeat: Infinity, ease: 'easeInOut', delay: p.delay }}
+          style={{ position: 'absolute', left: p.x, top: p.y, width: p.size, height: p.size + 18, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, transform: `rotate(${p.rotate}deg)`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, backdropFilter: 'blur(4px)' }}>
+          <Camera size={p.size * 0.28} color="rgba(255,255,255,0.2)" />
+          <div style={{ height: 3, width: '50%', borderRadius: 999, background: 'rgba(255,255,255,0.12)' }} />
+        </motion.div>
+      ))}
+
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, textAlign: 'center', padding: '0 24px', height: '100%', justifyContent: 'center' }}>
+        <motion.div animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ width: 88, height: 88, borderRadius: 24, background: 'rgba(253,101,47,0.15)', border: '1.5px solid rgba(253,101,47,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 32px rgba(253,101,47,0.15)' }}>
+          <Camera size={36} color="#FD652F" strokeWidth={1.5} />
+        </motion.div>
+        <div>
+          <p style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#FD652F', marginBottom: 8 }}>SHPE Austin</p>
+          <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#fff', margin: '0 0 8px', letterSpacing: '-0.01em' }}>Photos Coming Soon</h3>
+          <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)', fontWeight: 500, margin: 0 }}>Event memories will live here — check back after our next event!</p>
+        </div>
+        {total > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#FD652F' }} />
+            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.06em' }}>Photo {current + 1} of {total}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Carousel({ photos = [] }) {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(1);
-  const total = slides.length;
+  const total = photos.length;
 
   const go = (next) => {
     setDirection(next > current ? 1 : -1);
@@ -231,10 +275,19 @@ function Carousel() {
   const prev = (current - 1 + total) % total;
   const next = (current + 1) % total;
 
+  // no photos yet — single animated placeholder, no navigation
+  if (total === 0) {
+    return (
+      <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: 400, boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
+        <PlaceholderSlide current={0} total={0} />
+      </div>
+    );
+  }
+
   return (
     <div style={{ position: 'relative', userSelect: 'none' }}>
 
-      
+
       <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: 400, background: '#0f172a', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
@@ -244,40 +297,28 @@ function Carousel() {
             initial="enter"
             animate="center"
             exit="exit"
-            style={{
-              position: 'absolute', inset: 0,
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center', gap: 16,
-              background: 'linear-gradient(135deg, #1e293b, #0f172a)',
-            }}
+            style={{ position: 'absolute', inset: 0 }}
           >
-            <div style={{
-              width: 80, height: 80, borderRadius: 20,
-              background: 'rgba(255,255,255,0.06)',
-              border: '2px dashed rgba(255,255,255,0.15)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Camera size={32} color="rgba(255,255,255,0.3)" />
-            </div>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              {slides[current].label}
-            </span>
+            {photos[current]
+              ? <img src={photos[current].url} alt={photos[current].alt ?? `Event photo ${current + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              : <PlaceholderSlide current={current} total={total} />
+            }
           </motion.div>
         </AnimatePresence>
 
-        
-        <div style={{
-          position: 'absolute', top: 16, right: 16, zIndex: 10,
-          padding: '4px 12px', borderRadius: 999,
-          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
-          fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.7)',
-          letterSpacing: '0.05em',
-        }}>
-          {current + 1} / {total}
-        </div>
+        {total > 1 && (
+          <div style={{
+            position: 'absolute', top: 16, right: 16, zIndex: 10,
+            padding: '4px 12px', borderRadius: 999,
+            background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
+            fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.7)',
+            letterSpacing: '0.05em',
+          }}>
+            {current + 1} / {total}
+          </div>
+        )}
 
-        
-        {[{ dir: -1, side: 'left', icon: '←' }, { dir: 1, side: 'right', icon: '→' }].map(({ dir, side, icon }) => (
+        {total > 1 && [{ dir: -1, side: 'left', icon: '←' }, { dir: 1, side: 'right', icon: '→' }].map(({ dir, side, icon }) => (
           <button
             key={side}
             onClick={() => go(current + dir)}
@@ -298,36 +339,34 @@ function Carousel() {
         ))}
       </div>
 
-      
-      <div style={{ display: 'flex', gap: 10, marginTop: 14, justifyContent: 'center' }}>
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => go(i)}
-            style={{
-              padding: 0, border: 'none', cursor: 'pointer',
-              borderRadius: 10,
-              width: i === current ? 48 : 36,
-              height: 36,
-              background: i === current
-                ? 'linear-gradient(135deg, #FD652F, #D33A02)'
-                : 'linear-gradient(135deg, #e2e8f0, #cbd5e1)',
-              flexShrink: 0,
-              transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-              boxShadow: i === current ? '0 4px 12px rgba(253,101,47,0.4)' : 'none',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            {i === current && <Camera size={14} color="white" />}
-          </button>
-        ))}
-      </div>
 
-      
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, padding: '0 4px' }}>
-        <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>← {slides[prev].label}</span>
-        <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>{slides[next].label} →</span>
-      </div>
+      {total > 1 && (
+        <>
+          <div style={{ display: 'flex', gap: 10, marginTop: 14, justifyContent: 'center' }}>
+            {photos.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => go(i)}
+                style={{
+                  padding: 0, border: 'none', cursor: 'pointer', borderRadius: 10,
+                  width: i === current ? 48 : 36, height: 36,
+                  background: i === current ? 'linear-gradient(135deg, #FD652F, #D33A02)' : 'linear-gradient(135deg, #e2e8f0, #cbd5e1)',
+                  flexShrink: 0,
+                  transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+                  boxShadow: i === current ? '0 4px 12px rgba(253,101,47,0.4)' : 'none',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                {i === current && <Camera size={14} color="white" />}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, padding: '0 4px' }}>
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>← {photos[prev]?.alt ?? `Photo ${prev + 1}`}</span>
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>{photos[next]?.alt ?? `Photo ${next + 1}`} →</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -464,7 +503,7 @@ export default function Events() {
           </p>
         </div>
 
-        <Carousel />
+        <Carousel photos={[]} />
       </section>
 
       

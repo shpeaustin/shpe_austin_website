@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FileText } from 'lucide-react';
+import irs2024 from '../assets/irs_forms/2024-SHPE-Austin-990-N.pdf';
+import irs2023 from '../assets/irs_forms/2023-SHPE-Austin-990-N-3.pdf';
 
 function useCountUp(target, duration = 1800) {
   const [count, setCount] = useState(0);
@@ -66,21 +68,19 @@ const austinTimeline = [
   { year: '1982', label: 'SHPE Austin Founded', desc: 'Established to bring networking and professional development to Hispanic engineers in Austin.' },
   { year: '1994', label: 'Scholarship Program', desc: 'Launched our annual scholarship program, awarding at least $3,000 per year to local STEM students.' },
   { year: '2000s', label: 'STEM Outreach', desc: 'Expanded to support students as young as elementary school through STEM enrichment projects.' },
-  { year: '2020+', label: '38+ Years Strong', desc: 'Continuing to grow our professional membership, host networking events, and develop quality STEM leaders.' },
+  { year: '2026', label: '44+ Years Strong', desc: 'Continuing to grow our professional membership, host networking events, and develop quality STEM leaders.' },
 ];
 
 const stats = [
-  { value: '38+', label: 'Years of Impact' },
+  { value: '44+', label: 'Years of Impact' },
   { value: '1994', label: 'Scholarship Since' },
   { value: '$3K+', label: 'Awarded Annually' },
   { value: 'K–12', label: 'Outreach Reach' },
 ];
 
 const irsDocuments = [
-  { label: '990 Public IRS Form — 2022', href: '#' },
-  { label: '990 Public IRS Form — 2021', href: '#' },
-  { label: '990 Public IRS Form — 2020', href: '#' },
-  { label: '990 Public IRS Form — 2019', href: '#' },
+  { label: '990-N Public IRS Form — 2024', href: irs2024 },
+  { label: '990-N Public IRS Form — 2023', href: irs2023 },
 ];
 
 export default function About() {

@@ -223,7 +223,7 @@ export default function ExecutiveBoard() {
             className="inline-block text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full mb-6"
             style={{ background: 'rgba(253,101,47,0.18)', color: '#FD652F', border: '1px solid rgba(253,101,47,0.3)' }}
           >
-            2024 – 2025
+            2026-2027
           </span>
           <h1 className="font-black text-white" style={{ fontSize: 'clamp(2.4rem, 6vw, 4rem)', lineHeight: 1.05, letterSpacing: '-0.02em' }}>
             Executive Board

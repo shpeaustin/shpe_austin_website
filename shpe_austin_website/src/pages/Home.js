@@ -164,13 +164,14 @@ export default function Home() {
   const [carouselPaused, setCarouselPaused] = useState(false);
   const alreadyPlayed = sessionStorage.getItem('introPlayed');
 
+  // single interval drives both the flyer and the detail panel
   useEffect(() => {
     if (events.length <= 1 || carouselPaused) return;
-    const id = setInterval(() => setActiveIdx(i => (i + 1) % events.length), 5000);
+    const id = setInterval(() => setActiveIdx(i => (i + 1) % events.length), 6000);
     return () => clearInterval(id);
   }, [events.length, carouselPaused]);
 
-  // restart the carousel once they close the lightbox
+  // resume when lightbox closes
   useEffect(() => {
     if (!lightboxSrc) setCarouselPaused(false);
   }, [lightboxSrc]);
@@ -546,173 +547,139 @@ export default function Home() {
 
         {!eventsLoading && !eventsError && events.length > 0 && (() => {
           const ev = events[activeIdx];
-          const stackCount = Math.min(events.length - 1, 2);
-          // peek cards = the next events peeking out behind the active one
-          const peekCards = Array.from({ length: stackCount }, (_, d) => {
-            const peekIdx = (activeIdx + d + 1) % events.length;
-            return events[peekIdx];
-          });
-
+          const FlyerPlaceholder = ({ color }) => (
+            <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, color: `${color}88` }}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" />
+              </svg>
+              <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Flyer Soon</span>
+            </div>
+          );
           return (
-            <div className="max-w-4xl mx-auto mb-10">
-              
-              <div
-                style={{ position: 'relative', paddingBottom: stackCount * 14 }}
-                onMouseEnter={() => setCarouselPaused(true)}
-                onMouseLeave={() => { if (!lightboxSrc) setCarouselPaused(false); }}
-              >
-                {/* next event previews peeking behind */}
-                {peekCards.map((peek, d) => (
-                  <div
-                    key={peek.title + d}
-                    style={{
-                      position: 'absolute',
-                      bottom: -(d + 1) * 14,
-                      left: (d + 1) * 18,
-                      right: (d + 1) * 18,
-                      height: '100%',
-                      borderRadius: 18,
-                      background: '#fff',
-                      borderLeft: `5px solid ${peek.border}`,
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-                      zIndex: stackCount - d,
-                      overflow: 'hidden',
-                      opacity: d === 0 ? 0.55 : 0.3,
-                      transform: `scale(${1 - (d + 1) * 0.02})`,
-                      transformOrigin: 'bottom center',
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    
-                    {peek.flyer && (
-                      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${peek.flyer})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(2px)', opacity: 0.4 }} />
-                    )}
-                    <div style={{ position: 'absolute', top: 16, left: 20, display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <div style={{ height: 10, width: 60, borderRadius: 999, background: peek.border, opacity: 0.5 }} />
-                      <div style={{ height: 8, width: 80, borderRadius: 999, background: '#e5e7eb' }} />
-                    </div>
-                  </div>
-                ))}
+            <div
+              className="max-w-5xl mx-auto mb-10"
+              onMouseEnter={() => setCarouselPaused(true)}
+              onMouseLeave={() => { if (!lightboxSrc) setCarouselPaused(false); }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 48, flexWrap: 'wrap', justifyContent: 'center' }}>
 
-                
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeIdx}
-                    initial={{ opacity: 0, y: -28, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 28, scale: 0.97 }}
-                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                    className="rounded-2xl overflow-hidden"
-                    style={{
-                      position: 'relative', zIndex: stackCount + 1,
-                      display: 'flex', flexWrap: 'wrap',
-                      boxShadow: '0 12px 40px rgba(0,0,0,0.14)',
-                      borderLeft: `5px solid ${ev.border}`,
-                      background: '#fff',
-                    }}
-                  >
-                    
-                    <div
-                      className="event-flyer-panel"
-                      style={{
-                        flexShrink: 0,
-                        background: ev.flyer
-                          ? 'transparent'
-                          : `linear-gradient(135deg, ${ev.border}18 0%, ${ev.border}06 100%)`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        position: 'relative', overflow: 'hidden',
-                        cursor: ev.flyer ? 'zoom-in' : 'default',
-                      }}
-                      onClick={() => {
-                        if (ev.flyer) {
-                          setLightboxSrc(ev.flyer);
-                          setCarouselPaused(true);
-                        }
-                      }}
+                {/* Left: event details */}
+                <div style={{ flex: 1, minWidth: 280 }}>
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeIdx}
+                      initial={{ opacity: 0, x: -24 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 24 }}
+                      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      {ev.flyer ? (
-                        <>
-                          <img
-                            src={ev.flyer}
-                            alt={`${ev.title} flyer`}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                          />
-                          <div className="flyer-hover-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0)', transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span className="flyer-hover-label" style={{ background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '6px 14px', borderRadius: 999, opacity: 0, transition: 'opacity 0.2s' }}>View Flyer</span>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center gap-2" style={{ color: `${ev.border}55` }}>
-                          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" />
-                            <circle cx="8.5" cy="8.5" r="1.5" />
-                            <path d="M21 15l-5-5L5 21" />
-                          </svg>
-                          <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Flyer Coming Soon</span>
-                        </div>
-                      )}
-                    </div>
-
-                    
-                    <div className="p-8 flex flex-col justify-center" style={{ flex: 1, minWidth: 240 }}>
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: ev.tagBg, color: ev.tagColor }}>{ev.tag}</span>
-                        <span className="text-xs font-semibold" style={{ color: '#9ca3af' }}>{ev.date}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '4px 12px', borderRadius: 999, background: ev.tagBg, color: ev.tagColor }}>
+                          {ev.tag}
+                        </span>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#9ca3af' }}>{ev.date}</span>
                       </div>
-                      <h3 className="font-black text-xl leading-snug mb-3" style={{ color: '#001F5B' }}>{ev.title}</h3>
-                      <p className="text-sm leading-relaxed mb-6" style={{ color: '#6b7280' }}>{ev.description}</p>
-                      <div className="flex gap-3 flex-wrap">
+                      <h3 style={{ fontWeight: 900, fontSize: 'clamp(1.5rem, 3vw, 2rem)', color: '#001F5B', marginBottom: 12, lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+                        {ev.title}
+                      </h3>
+                      <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: '#6b7280', marginBottom: 28 }}>
+                        {ev.description}
+                      </p>
+                      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                         <a
-                          href={ev.rsvp}
-                          className="inline-block font-bold text-sm rounded-full px-6 py-2.5 transition-all duration-200 hover:opacity-85 hover:-translate-y-0.5"
-                          style={{ background: ev.border, color: '#fff', textDecoration: 'none' }}
+                          href={ev.rsvp} target="_blank" rel="noopener noreferrer"
+                          style={{ display: 'inline-block', fontWeight: 800, fontSize: '0.85rem', borderRadius: 999, padding: '12px 28px', background: ev.border, color: '#fff', textDecoration: 'none', transition: 'opacity 0.2s, transform 0.2s' }}
+                          onMouseOver={e => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                          onMouseOut={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
                         >
                           RSVP Here
                         </a>
                         {ev.flyer && (
                           <button
                             onClick={() => { setLightboxSrc(ev.flyer); setCarouselPaused(true); }}
-                            className="font-bold text-sm rounded-full px-6 py-2.5 transition-all duration-200 hover:-translate-y-0.5"
-                            style={{ background: 'transparent', border: `2px solid ${ev.border}`, color: ev.border, cursor: 'pointer' }}
+                            style={{ fontWeight: 800, fontSize: '0.85rem', borderRadius: 999, padding: '12px 28px', cursor: 'pointer', background: 'transparent', border: `2px solid ${ev.border}`, color: ev.border, transition: 'opacity 0.2s, transform 0.2s' }}
+                            onMouseOver={e => { e.currentTarget.style.opacity = '0.75'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                            onMouseOut={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
                           >
                             View Flyer
                           </button>
                         )}
                       </div>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
+                    </motion.div>
+                  </AnimatePresence>
 
-              
-              {events.length > 1 && (
-                <div className="flex justify-center items-center gap-3 mt-6">
-                  {carouselPaused && (
-                    <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9ca3af' }}>paused</span>
-                  )}
-                  {events.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => { setActiveIdx(i); setCarouselPaused(true); }}
-                      style={{
-                        width: i === activeIdx ? 24 : 8,
-                        height: 8, borderRadius: 999, border: 'none', cursor: 'pointer',
-                        background: i === activeIdx ? events[i].border : '#d1d5db',
-                        transition: 'all 0.3s ease',
-                        padding: 0,
-                      }}
-                    />
-                  ))}
-                  {carouselPaused && (
-                    <button
-                      onClick={() => setCarouselPaused(false)}
-                      style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-                    >
-                      resume
-                    </button>
+                  {events.length > 1 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 32 }}>
+                      {events.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => { setActiveIdx(i); setCarouselPaused(true); }}
+                          style={{ width: i === activeIdx ? 24 : 8, height: 8, borderRadius: 999, border: 'none', cursor: 'pointer', padding: 0, background: i === activeIdx ? events[i].border : '#d1d5db', transition: 'all 0.3s ease' }}
+                        />
+                      ))}
+                      {carouselPaused && (
+                        <button
+                          onClick={() => setCarouselPaused(false)}
+                          style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                        >
+                          resume
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
+
+                {/* Right: controlled flyer stack — always shows events[activeIdx] on top */}
+                <div style={{ position: 'relative', width: 300, height: 420, flexShrink: 0 }}>
+                  {/* peek cards behind — show next events */}
+                  {events.length > 1 && [2, 1].map(offset => {
+                    const peekIdx = (activeIdx + offset) % events.length;
+                    const pe = events[peekIdx];
+                    return (
+                      <div
+                        key={offset}
+                        style={{
+                          position: 'absolute', inset: 0,
+                          borderRadius: 16, overflow: 'hidden',
+                          background: pe.flyer ? 'transparent' : `linear-gradient(135deg, ${pe.border}20, ${pe.border}08)`,
+                          border: `1px solid ${pe.border}33`,
+                          transform: `rotate(${offset * 3}deg) translate(${offset * 10}px, ${offset * -8}px)`,
+                          zIndex: offset,
+                          boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                        }}
+                      >
+                        {pe.flyer && <img src={pe.flyer} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.45, filter: 'blur(1px)' }} />}
+                      </div>
+                    );
+                  })}
+
+                  {/* active flyer — always events[activeIdx] */}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeIdx}
+                      initial={{ opacity: 0, scale: 0.93, rotate: -5 }}
+                      animate={{ opacity: 1, scale: 1, rotate: -2 }}
+                      exit={{ opacity: 0, scale: 0.93, rotate: 3 }}
+                      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                      style={{
+                        position: 'absolute', inset: 0, zIndex: 10,
+                        borderRadius: 16, overflow: 'hidden',
+                        border: `1px solid ${ev.border}55`,
+                        boxShadow: '0 20px 56px rgba(0,0,0,0.18)',
+                        background: ev.flyer ? 'transparent' : `linear-gradient(135deg, ${ev.border}20, ${ev.border}08)`,
+                        cursor: ev.flyer ? 'zoom-in' : 'default',
+                      }}
+                      onClick={() => { if (ev.flyer) { setLightboxSrc(ev.flyer); setCarouselPaused(true); } }}
+                    >
+                      {ev.flyer
+                        ? <img src={ev.flyer} alt={ev.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        : <FlyerPlaceholder color={ev.border} />
+                      }
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+              </div>
             </div>
           );
         })()}

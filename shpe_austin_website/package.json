@@ -1,5 +1,5 @@
 {
-  "homepage": "shpeaustin.com",
+  "homepage": "https://shpeaustin.github.io/shpe_austin_website",
   "name": "shpe_austin_website",
   "version": "0.1.0",
   "private": true,
@@ -55,6 +55,7 @@
     "@types/node": "^25.9.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "gh-pages": "^6.3.0",
     "tailwindcss": "^3.4.19",
     "typescript": "^4.9.5"
   }
