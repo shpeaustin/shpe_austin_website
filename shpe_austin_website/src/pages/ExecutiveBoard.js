@@ -287,7 +287,7 @@ export default function ExecutiveBoard() {
               Become a member of SHPE Austin and connect with engineers, professionals, and leaders who share your drive.
             </p>
             <a
-              href="/membership"
+              href="#/membership"
               className="relative z-10 inline-block font-black text-sm px-8 py-3.5 rounded-full transition-opacity hover:opacity-90"
               style={{ background: 'linear-gradient(90deg,#D33A02,#FD652F)', color: 'white' }}
             >

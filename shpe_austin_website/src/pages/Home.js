@@ -412,7 +412,7 @@ export default function Home() {
           <p className="leading-relaxed mb-10" style={{ color: '#c8d8e8', fontSize: 'clamp(1rem, 2vw, 1.2rem)' }}>
             SHPE changes lives by empowering the Hispanic community to realize its fullest potential and to impact the world through STEM awareness, access, support, and development.
           </p>
-          <a href="/#/about" className="inline-block font-bold rounded-full px-8 py-3 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5" style={{ background: '#FD652F', color: '#fff', fontSize: '1rem', textDecoration: 'none' }}>
+          <a href="#/about" className="inline-block font-bold rounded-full px-8 py-3 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5" style={{ background: '#FD652F', color: '#fff', fontSize: '1rem', textDecoration: 'none' }}>
             Learn More
           </a>
         </div>
@@ -725,7 +725,7 @@ export default function Home() {
               Unlock networking, events, scholarships, and professional development opportunities.
             </p>
             <a
-              href="/#/membership"
+              href="#/membership"
               className="inline-block font-bold rounded-full px-6 py-3 transition-all duration-200 hover:opacity-85 hover:-translate-y-0.5"
               style={{ background: '#FD652F', color: '#fff', textDecoration: 'none', fontSize: '0.9rem' }}
             >
@@ -783,7 +783,7 @@ export default function Home() {
             Your generosity helps us achieve our goals of giving back to the community — from scholarships to students, to donations to food banks, and so much more.
           </p>
           <a
-            href="#donate"
+            href="#/donations"
             className="inline-block font-black rounded-full px-10 py-4 transition-all duration-200 hover:-translate-y-1"
             style={{ background: '#fff', color: '#D33A02', textDecoration: 'none', fontSize: '1.1rem', boxShadow: '0 8px 30px rgba(0,0,0,0.2)' }}
             onMouseOver={e => e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.3)'}
