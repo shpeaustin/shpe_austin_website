@@ -79,13 +79,13 @@ const board = [
     gradient: 'linear-gradient(135deg, #0070C0 0%, #005a9e 100%)',
   },
   {
-    name: 'Patricia Islas',
+    name: 'Patricia Islas-Torres',
     position: 'Marketing Director',
-    profession: 'Communications & Media',
-    company: 'Company Name',
-    school: 'University of Texas at Austin',
-    funFact: null,
-    whyShpe: null,
+    profession: 'Graduate Engineer',
+    company: 'LJA Engineering',
+    school: 'San Jose State University',
+    funFact: 'I have lived in 4 of the largest cities (by population) in the US!',
+    whyShpe: 'Although I am not physically located in Austin anymore, I found myself going back a lot to visit the community I built while living there. I am excited to help the chapter where I can!',
     photo: require('../assets/executive_board/patricia_islas.jpg'),
     photoPosition: 'center 20%',
     accent: '#D33A02',
@@ -142,8 +142,8 @@ const board = [
 
 const stats = [
   { value: 10, suffix: '', label: 'Chapter Leaders' },
-  { value: 8,  suffix: '', label: 'Universities' },
-  { value: 5,  suffix: '+', label: 'Companies' },
+  { value: 11, suffix: '', label: 'Universities' },
+  { value: 10, suffix: '', label: 'Companies' },
   { value: 1,  suffix: '', label: 'Mission' },
 ];
 
