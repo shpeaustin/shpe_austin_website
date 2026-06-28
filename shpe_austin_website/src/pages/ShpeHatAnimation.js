@@ -16,7 +16,7 @@ export default function ShpeHatAnimation({ onComplete, speed = 1 }) {
       scene.style.transform = `scale(${scale})`;
       wrapper.style.height = `${300 * scale}px`;
     }
-    scaleScene();
+    requestAnimationFrame(scaleScene);
     window.addEventListener('resize', scaleScene);
     return () => window.removeEventListener('resize', scaleScene);
   }, []);
