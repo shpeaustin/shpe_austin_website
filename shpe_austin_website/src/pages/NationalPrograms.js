@@ -151,7 +151,7 @@ export default function NationalPrograms() {
             {[
               { value: '3', label: 'Program Categories' },
               { value: '11', label: 'Active Programs' },
-              { value: 'K–12', label: 'Outreach Reach' },
+              { value: 'K–12', label: 'Outreach' },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <p className="font-black text-white" style={{ fontSize: '2rem' }}>{s.value}</p>

@@ -75,7 +75,7 @@ const stats = [
   { value: '44+', label: 'Years of Impact' },
   { value: '1994', label: 'Scholarship Since' },
   { value: '$3K+', label: 'Awarded Annually' },
-  { value: 'K–12', label: 'Outreach Reach' },
+  { value: 'K–12', label: 'Outreach' },
 ];
 
 const irsDocuments = [
@@ -180,7 +180,7 @@ export default function About() {
                 SHPE Austin History
               </h2>
               <p className="leading-relaxed mb-4" style={{ color: '#4b5563', fontSize: '1.05rem', maxWidth: '680px' }}>
-                Founded in 1982, over the past 38 years, SHPE Austin has expanded its initial efforts of providing networking and professional development opportunities to include support for the local Hispanic community in obtaining STEM degrees.
+                Founded in 1982, over the past 44 years, SHPE Austin has expanded its initial efforts of providing networking and professional development opportunities to include support for the local Hispanic community in obtaining STEM degrees.
               </p>
               <p className="leading-relaxed mb-12" style={{ color: '#4b5563', fontSize: '1.05rem', maxWidth: '680px' }}>
                 Whether we present on soft skills or field-specific topics, SHPE Austin prides itself on developing quality professionals in the workforce — while hosting networking events that create a welcoming environment for all who share our vision.
