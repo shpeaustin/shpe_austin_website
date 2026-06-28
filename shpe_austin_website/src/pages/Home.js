@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { createClient } from 'contentful';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn } from 'react-icons/fa';
-import { Users, HandHeart, BookOpen, Shield } from 'lucide-react';
+import { Users, HandHeart, BookOpen, Shield, Briefcase, GraduationCap, Coffee, Trophy, Heart, Star } from 'lucide-react';
 import ShpeHatAnimation from './ShpeHatAnimation';
 
 const charVariants = {
@@ -20,15 +20,6 @@ const fadeUp = {
   transition: { duration: 0.7, ease: 'easeOut' },
 };
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
-};
-
-const cardVariant = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
 
 const valueCards = [
   { label: 'Familia', Icon: Users, color: '#001F5B', accent: '#0070C0', desc: 'Community and belonging at the heart of everything we do.' },
@@ -65,6 +56,36 @@ const contentfulClient =
       })
     : null;
 
+function useBentoPhotos() {
+  const [photos, setPhotos] = useState([]);
+
+  useEffect(() => {
+    if (!contentfulClient) return;
+    contentfulClient
+      .getEntries({ content_type: 'pastEventGallery', order: '-fields.eventDate', limit: 10 })
+      .then(res => {
+        const flat = [];
+        for (const item of res.items) {
+          for (const p of (item.fields.photos ?? [])) {
+            if (p.fields?.file?.url) {
+              flat.push({
+                url: `https:${p.fields.file.url}`,
+                alt: p.fields?.title ?? item.fields.eventName ?? '',
+                label: item.fields.eventName ?? '',
+              });
+            }
+            if (flat.length === 5) break;
+          }
+          if (flat.length === 5) break;
+        }
+        setPhotos(flat);
+      })
+      .catch(() => {});
+  }, []);
+
+  return photos;
+}
+
 function useEvents() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -81,15 +102,17 @@ function useEvents() {
         setEvents(
           res.items.map(item => {
             const theme = getTheme(item.fields.tag);
+            const rawDate = item.fields.date;
             return {
               title: item.fields.title,
-              date: formatEventDate(item.fields.date),
+              date: formatEventDate(rawDate),
               tag: item.fields.tag,
               description: item.fields.description,
               rsvp: item.fields.rsvp ?? '#',
               flyer: item.fields.flyer?.fields?.file?.url
                 ? `https:${item.fields.flyer.fields.file.url}`
                 : null,
+              isPast: rawDate ? new Date(rawDate) < new Date() : false,
               ...theme,
             };
           })
@@ -157,6 +180,197 @@ function useAmbientVideo(videoRef, active) {
 }
 
 
+// desktop bento spans — 3-col × 3-row grid
+const bentoLayout = [
+  { gridColumn: '1 / 3', gridRow: '1 / 3' },  // large hero
+  { gridColumn: '3',     gridRow: '1' },
+  { gridColumn: '3',     gridRow: '2' },
+  { gridColumn: '1',     gridRow: '3' },
+  { gridColumn: '2 / 4', gridRow: '3' },
+];
+
+function BentoCell({ photo, gridStyle, fitMap, onLoad, index }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.94, y: 16 }}
+      whileInView={{ opacity: 1, scale: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        ...gridStyle,
+        position: 'relative',
+        overflow: 'hidden',
+        borderRadius: 14,
+        background: '#0f172a',
+        cursor: 'default',
+        boxShadow: hovered ? '0 16px 48px rgba(0,0,0,0.22)' : '0 4px 16px rgba(0,0,0,0.1)',
+        transition: 'box-shadow 0.4s ease, transform 0.4s ease',
+        transform: hovered ? 'scale(1.02)' : 'scale(1)',
+        zIndex: hovered ? 2 : 1,
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Ken Burns slow zoom */}
+      <img
+        src={photo.url}
+        alt={photo.alt}
+        onLoad={e => onLoad(e, photo.url)}
+        style={{
+          width: '100%', height: '100%', display: 'block',
+          objectFit: fitMap[photo.url] ?? 'cover',
+          transform: hovered ? 'scale(1.08)' : 'scale(1)',
+          transition: 'transform 0.7s cubic-bezier(0.22,1,0.36,1)',
+        }}
+      />
+
+      {/* shimmer sweep on hover */}
+      <div style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.13) 50%, transparent 60%)',
+        backgroundSize: '200% 100%',
+        backgroundPosition: hovered ? '0% 0%' : '200% 0%',
+        transition: 'background-position 0.6s ease',
+      }} />
+
+      {/* gradient + label */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)',
+        opacity: hovered ? 1 : 0,
+        transition: 'opacity 0.35s ease',
+        display: 'flex', alignItems: 'flex-end', padding: '14px 16px',
+        pointerEvents: 'none',
+      }}>
+        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#fff', letterSpacing: '0.05em', textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+          {photo.label}
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
+function BentoSection() {
+  const photos = useBentoPhotos();
+  const [fitMap, setFitMap] = useState({});
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  const handleLoad = useCallback((e, url) => {
+    const { naturalWidth, naturalHeight } = e.currentTarget;
+    setFitMap(prev => ({ ...prev, [url]: naturalHeight > naturalWidth ? 'contain' : 'cover' }));
+  }, []);
+
+  if (photos.length === 0) return null;
+
+  // mobile: simple 2-col grid, all cells equal
+  const mobileLayout = [
+    { gridColumn: '1 / 3', gridRow: '1' },  // full width top
+    { gridColumn: '1',     gridRow: '2' },
+    { gridColumn: '2',     gridRow: '2' },
+    { gridColumn: '1',     gridRow: '3' },
+    { gridColumn: '2',     gridRow: '3' },
+  ];
+
+  const layout    = isMobile ? mobileLayout : bentoLayout;
+  const columns   = isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)';
+  const rowHeight = isMobile ? '160px' : '210px';
+  const rows      = isMobile ? `repeat(3, ${rowHeight})` : `repeat(3, ${rowHeight})`;
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.7, ease: 'easeOut' }}
+      style={{ padding: '80px 24px', background: '#fff' }}
+    >
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <span style={{ display: 'inline-block', fontSize: '0.7rem', fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '6px 16px', borderRadius: 999, marginBottom: 16, background: 'rgba(0,112,192,0.08)', color: '#0070C0', border: '1px solid rgba(0,112,192,0.2)' }}>
+            Our Community
+          </span>
+          <h2 style={{ fontWeight: 900, color: '#001F5B', fontSize: 'clamp(2rem, 5vw, 3rem)', margin: 0 }}>
+            Moments from the Familia
+          </h2>
+        </div>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: columns,
+          gridTemplateRows: rows,
+          gap: 12,
+        }}>
+          {photos.map((photo, i) => (
+            <BentoCell
+              key={photo.url}
+              photo={photo}
+              gridStyle={layout[i] ?? {}}
+              fitMap={fitMap}
+              onLoad={handleLoad}
+              index={i}
+            />
+          ))}
+        </div>
+
+        {/* stat strip */}
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', justifyContent: 'center',
+          gap: '0px', marginTop: 40,
+          borderRadius: 16, overflow: 'hidden',
+          border: '1px solid #e5e7eb',
+        }}>
+          {[
+            { value: '30+', label: 'Years Strong' },
+            { value: '100+', label: 'Members' },
+            { value: '20+', label: 'Events / Year' },
+            { value: '1', label: 'Big Familia' },
+          ].map(({ value, label }, i) => (
+            <motion.div
+              key={label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              style={{
+                flex: '1 1 140px', padding: '24px 16px', textAlign: 'center',
+                borderRight: i < 3 ? '1px solid #e5e7eb' : 'none',
+                background: '#fff',
+              }}
+            >
+              <div style={{ fontWeight: 900, fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', color: '#001F5B', lineHeight: 1 }}>
+                {value}
+              </div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 6 }}>
+                {label}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: 24 }}>
+          <a
+            href="#/events"
+            style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0070C0', textDecoration: 'none', letterSpacing: '0.04em' }}
+            onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+            onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+          >
+            See all event photos →
+          </a>
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
 export default function Home() {
   const { events, loading: eventsLoading, error: eventsError } = useEvents();
   const [lightboxSrc, setLightboxSrc] = useState(null);
@@ -175,12 +389,12 @@ export default function Home() {
   useEffect(() => {
     if (!lightboxSrc) setCarouselPaused(false);
   }, [lightboxSrc]);
-  const [stage, setStage] = useState(alreadyPlayed ? 'done' : 'video');
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
+  const [stage, setStage] = useState(alreadyPlayed ? 'done' : isMobile ? 'hat' : 'video');
   const [fadeOut, setFadeOut] = useState(false);
   const [hatDone, setHatDone] = useState(!!alreadyPlayed);
   const videoRef = useRef(null);
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
-  const ambient = useAmbientVideo(videoRef, stage === 'video' && isMobile);
+  const ambient = useAmbientVideo(videoRef, stage === 'video' && !isMobile);
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.playbackRate = 1.5;
@@ -231,6 +445,18 @@ export default function Home() {
         .event-flyer-panel { width: 38%; min-width: 200px; min-height: 240px; }
         @media (max-width: 640px) {
           .event-flyer-panel { width: 100%; min-width: unset; min-height: 220px; }
+        }
+        @keyframes strikeSlide {
+          from { transform: scaleX(0); }
+          to   { transform: scaleX(1); }
+        }
+        @keyframes ribbonSlide {
+          from { opacity: 0; clip-path: inset(0 100% 0 0); }
+          to   { opacity: 1; clip-path: inset(0 0% 0 0); }
+        }
+        @keyframes pastPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(211,58,2,0.0); }
+          50%       { box-shadow: 0 0 0 6px rgba(211,58,2,0.18); }
         }
       `}</style>
 
@@ -347,7 +573,7 @@ export default function Home() {
 
           
           <div className="hat-margin" style={{ position: 'relative', zIndex: 1 }}>
-            <ShpeHatAnimation onComplete={handleHatComplete} speed={stage === 'done' ? 999 : 1.4} />
+            <ShpeHatAnimation onComplete={handleHatComplete} speed={stage === 'done' ? 999 : 1.8} />
           </div>
 
           
@@ -396,78 +622,182 @@ export default function Home() {
       {/*
           SECTION 1 — OUR MISSION
       ══════════════════════════════════════ */}
-      <motion.section {...fadeUp} className="relative overflow-hidden py-28 px-6 text-center" style={{ background: 'linear-gradient(135deg, #001F5B 0%, #0a1a3a 100%)' }}>
-        
-        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full opacity-10" style={{ background: '#0070C0', filter: 'blur(80px)' }} />
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full opacity-10" style={{ background: '#FD652F', filter: 'blur(80px)' }} />
+      <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #001F5B 0%, #0a1a3a 100%)' }}>
+        {/* ambient blobs */}
+        <div style={{ position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: '#0070C0', top: -200, right: -150, filter: 'blur(120px)', opacity: 0.1, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: '#FD652F', bottom: -160, left: -160, filter: 'blur(100px)', opacity: 0.1, pointerEvents: 'none' }} />
 
-        <div className="relative z-10 max-w-3xl mx-auto">
-          <span className="inline-block px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase mb-6" style={{ background: 'rgba(253,101,47,0.15)', color: '#FD652F', border: '1px solid rgba(253,101,47,0.3)' }}>
-            Who We Are
-          </span>
-          <h2 className="font-black leading-tight mb-6" style={{ color: '#fff', fontSize: 'clamp(2.5rem, 6vw, 4rem)' }}>
-            Our Mission
-          </h2>
-          <div className="mx-auto mb-8 rounded-full" style={{ width: '80px', height: '4px', background: 'linear-gradient(90deg, #FD652F, #0070C0)' }} />
-          <p className="leading-relaxed mb-10" style={{ color: '#c8d8e8', fontSize: 'clamp(1rem, 2vw, 1.2rem)' }}>
-            SHPE changes lives by empowering the Hispanic community to realize its fullest potential and to impact the world through STEM awareness, access, support, and development.
-          </p>
-          <a href="#/about" className="inline-block font-bold rounded-full px-8 py-3 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5" style={{ background: '#FD652F', color: '#fff', fontSize: '1rem', textDecoration: 'none' }}>
-            Learn More
-          </a>
+        <div className="relative z-10 max-w-6xl mx-auto px-6 py-24" style={{ display: 'flex', flexWrap: 'wrap', gap: 64, alignItems: 'center' }}>
+
+          {/* left — big typographic statement */}
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            style={{ flex: '1 1 300px' }}
+          >
+            <span style={{ display: 'inline-block', fontSize: '0.7rem', fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '6px 16px', borderRadius: 999, marginBottom: 24, background: 'rgba(253,101,47,0.15)', color: '#FD652F', border: '1px solid rgba(253,101,47,0.3)' }}>
+              Who We Are
+            </span>
+            <h2 style={{ fontWeight: 900, color: '#fff', fontSize: 'clamp(2.8rem, 6vw, 4.5rem)', lineHeight: 1.0, letterSpacing: '-0.03em', margin: '0 0 24px' }}>
+              Our<br />
+              <span style={{ background: 'linear-gradient(90deg, #FD652F, #ff9a6c)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Mission.</span>
+            </h2>
+            {/* animated accent line */}
+            <motion.div
+              initial={{ width: 0 }}
+              whileInView={{ width: 80 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, delay: 0.3, ease: 'easeOut' }}
+              style={{ height: 4, borderRadius: 999, background: 'linear-gradient(90deg, #FD652F, #0070C0)', marginBottom: 28 }}
+            />
+            <motion.a
+              href="#/about"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                fontWeight: 800, fontSize: '0.9rem', borderRadius: 12,
+                padding: '14px 26px', background: 'rgba(253,101,47,0.15)',
+                color: '#FD652F', textDecoration: 'none',
+                border: '1px solid rgba(253,101,47,0.3)',
+                transition: 'background 0.2s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(253,101,47,0.25)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(253,101,47,0.15)'}
+            >
+              Learn More →
+            </motion.a>
+          </motion.div>
+
+          {/* right — mission text + pillars */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            style={{ flex: '1 1 320px' }}
+          >
+            <p style={{ color: '#c8d8e8', fontSize: 'clamp(1.05rem, 2vw, 1.2rem)', lineHeight: 1.8, marginBottom: 36 }}>
+              SHPE changes lives by empowering the Hispanic community to realize its fullest potential and to impact the world through STEM awareness, access, support, and development.
+            </p>
+            {/* pillars */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {['Awareness', 'Access', 'Support', 'Development'].map((pillar, i) => (
+                <motion.div
+                  key={pillar}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: 0.3 + i * 0.08 }}
+                  style={{
+                    padding: '14px 18px', borderRadius: 12,
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    display: 'flex', alignItems: 'center', gap: 10,
+                  }}
+                >
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#FD652F', flexShrink: 0 }} />
+                  <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#fff', letterSpacing: '0.02em' }}>{pillar}</span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
         </div>
-      </motion.section>
+      </section>
 
       {/*
           SECTION 2 — SHPE VALUES
       ══════════════════════════════════════ */}
-      <section className="py-28 px-6" style={{ background: '#f0f4f8' }}>
-        <motion.div {...fadeUp} className="text-center max-w-xl mx-auto mb-16">
-          <span className="inline-block px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase mb-4" style={{ background: 'rgba(0,112,192,0.1)', color: '#0070C0', border: '1px solid rgba(0,112,192,0.2)' }}>
+      <section className="py-24 px-6" style={{ background: '#f8fafc' }}>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-xl mx-auto mb-14"
+        >
+          <span style={{ display: 'inline-block', fontSize: '0.7rem', fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '6px 16px', borderRadius: 999, marginBottom: 16, background: 'rgba(0,112,192,0.08)', color: '#0070C0', border: '1px solid rgba(0,112,192,0.18)' }}>
             What Drives Us
           </span>
-          <h2 className="font-black" style={{ color: '#001F5B', fontSize: 'clamp(2rem, 5vw, 3rem)' }}>
+          <h2 style={{ fontWeight: 900, color: '#001F5B', fontSize: 'clamp(2rem, 5vw, 3rem)', margin: 0, letterSpacing: '-0.02em' }}>
             SHPE Values
           </h2>
         </motion.div>
 
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          {valueCards.map(({ label, Icon, color, accent, desc }) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
+          {valueCards.map(({ label, Icon, color, accent, desc }, i) => (
             <motion.div
               key={label}
-              variants={cardVariant}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.55, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ y: -10, scale: 1.02 }}
-              className="relative overflow-hidden rounded-2xl p-8 flex flex-col items-center text-center group cursor-default"
-              style={{ background: '#fff', boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}
+              style={{
+                position: 'relative', overflow: 'hidden', borderRadius: 22,
+                padding: '36px 28px 32px',
+                background: `linear-gradient(145deg, ${color} 0%, ${accent} 100%)`,
+                boxShadow: `0 16px 48px ${color}35`,
+                cursor: 'default', minHeight: 260,
+                display: 'flex', flexDirection: 'column',
+                transition: 'box-shadow 0.3s ease',
+              }}
+              onMouseEnter={e => e.currentTarget.style.boxShadow = `0 24px 64px ${color}55`}
+              onMouseLeave={e => e.currentTarget.style.boxShadow = `0 16px 48px ${color}35`}
             >
-              
-              <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${color}, ${accent})` }} />
-
-              
-              <div className="flex items-center justify-center w-16 h-16 rounded-2xl mb-5 mt-2 transition-transform duration-300 group-hover:scale-110" style={{ background: `linear-gradient(135deg, ${color}, ${accent})` }}>
-                <Icon size={28} color="#fff" strokeWidth={1.8} />
+              {/* giant background number */}
+              <div style={{
+                position: 'absolute', bottom: -16, right: 10,
+                fontSize: '9rem', fontWeight: 900, lineHeight: 1,
+                color: 'rgba(255,255,255,0.07)', userSelect: 'none',
+                letterSpacing: '-0.04em', pointerEvents: 'none',
+              }}>
+                {String(i + 1).padStart(2, '0')}
               </div>
 
-              <h3 className="font-black text-xl mb-3" style={{ color }}>{label}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: '#6b7280' }}>{desc}</p>
+              {/* subtle dot texture */}
+              <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px)', backgroundSize: '24px 24px', pointerEvents: 'none' }} />
 
-              
-              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 0%, ${color}08 0%, transparent 70%)` }} />
+              {/* top-right glow blob */}
+              <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.08)', filter: 'blur(30px)', pointerEvents: 'none' }} />
+
+              <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{
+                  width: 52, height: 52, borderRadius: 14,
+                  background: 'rgba(255,255,255,0.18)',
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  marginBottom: 'auto', paddingBottom: 0,
+                }}>
+                  <Icon size={24} color="#fff" strokeWidth={1.8} />
+                </div>
+
+                <div style={{ marginTop: 28 }}>
+                  <h3 style={{ fontWeight: 900, fontSize: '1.4rem', color: '#fff', margin: '0 0 10px', letterSpacing: '-0.02em' }}>
+                    {label}
+                  </h3>
+                  <p style={{ fontSize: '0.83rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.72)', margin: 0 }}>
+                    {desc}
+                  </p>
+                </div>
+              </div>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
       </section>
+
+      {/*
+          SECTION 2.5 — COMMUNITY PHOTOS BENTO
+      ══════════════════════════════════════ */}
+      <BentoSection />
 
       {/*
           SECTION 3 — UPCOMING EVENTS
       ══════════════════════════════════════ */}
-      <section className="py-28 px-6" style={{ background: '#fff' }}>
+      <section className="py-28 px-6" style={{ background: '#f8fafc' }}>
         <motion.div {...fadeUp} className="text-center max-w-xl mx-auto mb-16">
           <span className="inline-block px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase mb-4" style={{ background: 'rgba(211,58,2,0.08)', color: '#D33A02', border: '1px solid rgba(211,58,2,0.2)' }}>
             What's Coming Up
@@ -573,13 +903,40 @@ export default function Home() {
                       exit={{ opacity: 0, x: 24 }}
                       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '4px 12px', borderRadius: 999, background: ev.tagBg, color: ev.tagColor }}>
                           {ev.tag}
                         </span>
-                        <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#9ca3af' }}>{ev.date}</span>
+                        <span style={{ position: 'relative', display: 'inline-block', fontSize: '0.78rem', fontWeight: 600, color: ev.isPast ? '#9ca3af' : '#9ca3af' }}>
+                          {ev.date}
+                          {ev.isPast && (
+                            <span style={{
+                              position: 'absolute', left: 0, right: 0,
+                              top: '50%', height: 2, borderRadius: 999,
+                              background: '#D33A02',
+                              transformOrigin: 'left center',
+                              animation: 'strikeSlide 0.55s cubic-bezier(0.22,1,0.36,1) 0.1s both',
+                            }} />
+                          )}
+                        </span>
+                        {ev.isPast && (
+                          <motion.span
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.4, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                            style={{
+                              fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
+                              textTransform: 'uppercase', padding: '3px 10px', borderRadius: 999,
+                              background: 'rgba(211,58,2,0.1)', color: '#D33A02',
+                              border: '1px solid rgba(211,58,2,0.3)',
+                              animation: 'pastPulse 2.5s ease-in-out 0.8s infinite',
+                            }}
+                          >
+                            Event Has Passed
+                          </motion.span>
+                        )}
                       </div>
-                      <h3 style={{ fontWeight: 900, fontSize: 'clamp(1.5rem, 3vw, 2rem)', color: '#001F5B', marginBottom: 12, lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+                      <h3 style={{ fontWeight: 900, fontSize: 'clamp(1.5rem, 3vw, 2rem)', color: ev.isPast ? '#9ca3af' : '#001F5B', marginBottom: 12, lineHeight: 1.2, letterSpacing: '-0.02em', transition: 'color 0.3s' }}>
                         {ev.title}
                       </h3>
                       <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: '#6b7280', marginBottom: 28 }}>
@@ -588,11 +945,11 @@ export default function Home() {
                       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                         <a
                           href={ev.rsvp} target="_blank" rel="noopener noreferrer"
-                          style={{ display: 'inline-block', fontWeight: 800, fontSize: '0.85rem', borderRadius: 999, padding: '12px 28px', background: ev.border, color: '#fff', textDecoration: 'none', transition: 'opacity 0.2s, transform 0.2s' }}
-                          onMouseOver={e => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                          style={{ display: 'inline-block', fontWeight: 800, fontSize: '0.85rem', borderRadius: 999, padding: '12px 28px', background: ev.isPast ? '#9ca3af' : ev.border, color: '#fff', textDecoration: 'none', transition: 'opacity 0.2s, transform 0.2s', cursor: ev.isPast ? 'default' : 'pointer', pointerEvents: ev.isPast ? 'none' : 'auto' }}
+                          onMouseOver={e => { if (!ev.isPast) { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
                           onMouseOut={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
                         >
-                          RSVP Here
+                          {ev.isPast ? 'Event Ended' : 'RSVP Here'}
                         </a>
                         {ev.flyer && (
                           <button
@@ -672,9 +1029,40 @@ export default function Home() {
                       onClick={() => { if (ev.flyer) { setLightboxSrc(ev.flyer); setCarouselPaused(true); } }}
                     >
                       {ev.flyer
-                        ? <img src={ev.flyer} alt={ev.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        ? <img src={ev.flyer} alt={ev.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: ev.isPast ? 'grayscale(40%) brightness(0.85)' : 'none', transition: 'filter 0.4s' }} />
                         : <FlyerPlaceholder color={ev.border} />
                       }
+                      {ev.isPast && (
+                        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', borderRadius: 16 }}>
+                          {/* dim overlay */}
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.28)', borderRadius: 16 }}
+                          />
+                          {/* full diagonal ribbon — centered on the card, spans corner to corner */}
+                          <div style={{
+                            position: 'absolute',
+                            top: '50%', left: '50%',
+                            /* 516px = √(300²+420²), padded to 560px to bleed past corners */
+                            width: 560,
+                            /* ribbon height */
+                            padding: '11px 0',
+                            background: 'linear-gradient(90deg, #A62500, #D33A02 30%, #FD652F 60%, #D33A02 80%, #A62500)',
+                            color: '#fff',
+                            fontSize: '0.72rem', fontWeight: 900,
+                            letterSpacing: '0.18em', textTransform: 'uppercase',
+                            textAlign: 'center',
+                            /* atan(420/300) ≈ 54.5° top-left → bottom-right */
+                            transform: 'translate(-50%, -50%) rotate(54.5deg)',
+                            boxShadow: '0 4px 20px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.12) inset',
+                            animation: 'ribbonSlide 0.6s cubic-bezier(0.22,1,0.36,1) 0.15s both',
+                          }}>
+                            ✦ &nbsp; Event Has Passed &nbsp; ✦
+                          </div>
+                        </div>
+                      )}
                     </motion.div>
                   </AnimatePresence>
                 </div>
@@ -702,16 +1090,16 @@ export default function Home() {
       {/*
           SECTION 4 — MEMBERSHIP
       ══════════════════════════════════════ */}
-      <motion.section {...fadeUp} className="py-28 px-6" style={{ background: '#f0f4f8' }}>
+      <motion.section {...fadeUp} className="py-28 px-6" style={{ background: 'linear-gradient(135deg, #001F5B 0%, #0a1a3a 100%)' }}>
         <div className="max-w-5xl mx-auto flex flex-wrap gap-12 items-center justify-center">
           <div className="flex-1" style={{ minWidth: '280px', maxWidth: '480px' }}>
-            <span className="inline-block px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase mb-4" style={{ background: 'rgba(253,101,47,0.1)', color: '#FD652F', border: '1px solid rgba(253,101,47,0.2)' }}>
+            <span className="inline-block px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase mb-4" style={{ background: 'rgba(253,101,47,0.18)', color: '#FD652F', border: '1px solid rgba(253,101,47,0.35)' }}>
               Join the Family
             </span>
-            <h2 className="font-black leading-tight mb-5" style={{ color: '#001F5B', fontSize: 'clamp(2rem, 4vw, 2.8rem)' }}>
+            <h2 className="font-black leading-tight mb-5" style={{ color: '#fff', fontSize: 'clamp(2rem, 4vw, 2.8rem)' }}>
               Membership
             </h2>
-            <p className="leading-relaxed text-lg" style={{ color: '#374151' }}>
+            <p className="leading-relaxed text-lg" style={{ color: '#c8d8e8' }}>
               Are you a recent grad or just moved to Austin? Become a member and learn more about what SHPE Austin has to offer!
             </p>
           </div>
@@ -738,62 +1126,146 @@ export default function Home() {
       {/*
           SECTION 5 — BECOME A SPONSOR
       ══════════════════════════════════════ */}
-      <motion.section {...fadeUp} className="relative overflow-hidden py-28 px-6 text-center" style={{ background: 'linear-gradient(135deg, #001F5B 0%, #0a1a3a 100%)' }}>
-        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-10" style={{ background: '#0070C0', filter: 'blur(60px)' }} />
-        <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full opacity-10" style={{ background: '#FD652F', filter: 'blur(60px)' }} />
+      <motion.section {...fadeUp} className="relative overflow-hidden py-24 px-6" style={{ background: 'linear-gradient(135deg, #001F5B 0%, #0a1a3a 100%)' }}>
+        <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full opacity-10" style={{ background: '#0070C0', filter: 'blur(80px)' }} />
+        <div className="absolute -bottom-20 -left-20 w-96 h-96 rounded-full opacity-10" style={{ background: '#FD652F', filter: 'blur(80px)' }} />
 
-        <div className="relative z-10 max-w-2xl mx-auto">
-          <span className="inline-block px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase mb-6" style={{ background: 'rgba(114,169,190,0.15)', color: '#72A9BE', border: '1px solid rgba(114,169,190,0.3)' }}>
-            Partner With Us
-          </span>
-          <h2 className="font-black leading-tight mb-6" style={{ color: '#fff', fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}>
-            Become a Sponsor!
-          </h2>
-          <div className="mx-auto mb-8 rounded-full" style={{ width: '80px', height: '4px', background: 'linear-gradient(90deg, #FD652F, #0070C0)' }} />
-          <p className="leading-relaxed mb-4" style={{ color: '#c8d8e8', fontSize: '1.05rem' }}>
-            SHPE Austin is always looking for new companies to help in the professional development and advancement of engineers in the City of Austin.
-          </p>
-          <p className="mb-10" style={{ color: '#c8d8e8', fontSize: '1rem' }}>
-            Interested? Contact us for a Corporate Solicitation Packet.
-          </p>
-          <a
-            href="mailto:contact@shpeaustin.com"
-            className="inline-block font-bold rounded-full px-8 py-3 transition-all duration-200 hover:opacity-85 hover:-translate-y-0.5"
-            style={{ background: '#FD652F', color: '#fff', textDecoration: 'none', fontSize: '1rem' }}
-          >
-            contact@shpeaustin.com
-          </a>
+        <div className="relative z-10 max-w-6xl mx-auto" style={{ display: 'flex', flexWrap: 'wrap', gap: 64, alignItems: 'center', justifyContent: 'center' }}>
+
+          {/* left — text */}
+          <div style={{ flex: '1 1 300px', maxWidth: 480 }}>
+            <span style={{ display: 'inline-block', fontSize: '0.7rem', fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '6px 16px', borderRadius: 999, marginBottom: 20, background: 'rgba(114,169,190,0.15)', color: '#72A9BE', border: '1px solid rgba(114,169,190,0.3)' }}>
+              Partner With Us
+            </span>
+            <h2 style={{ fontWeight: 900, color: '#fff', fontSize: 'clamp(2.2rem, 5vw, 3.2rem)', lineHeight: 1.1, letterSpacing: '-0.02em', marginBottom: 20 }}>
+              Invest in the Next Generation of Engineers
+            </h2>
+            <p style={{ color: '#c8d8e8', fontSize: '1.05rem', lineHeight: 1.75, marginBottom: 32 }}>
+              SHPE Austin connects your brand with a community of driven Hispanic engineers and STEM professionals in the heart of Austin. Let's build something together.
+            </p>
+            <a
+              href="mailto:contact@shpeaustin.com"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 10,
+                fontWeight: 800, fontSize: '0.95rem', borderRadius: 14,
+                padding: '14px 28px', background: '#FD652F', color: '#fff',
+                textDecoration: 'none', transition: 'opacity 0.2s, transform 0.2s',
+                boxShadow: '0 8px 24px rgba(253,101,47,0.35)',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            >
+              <Briefcase size={16} /> Get the Sponsorship Packet
+            </a>
+            <p style={{ marginTop: 14, fontSize: '0.82rem', color: 'rgba(255,255,255,0.35)' }}>
+              contact@shpeaustin.com
+            </p>
+          </div>
+
+          {/* right — benefit cards */}
+          <div style={{ flex: '1 1 280px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {[
+              { Icon: Trophy,    title: 'Brand Visibility',   desc: 'Logo placement on event materials, our website, and social media reaching 1,000+ followers.' },
+              { Icon: Users,     title: 'Talent Pipeline',    desc: 'Direct access to a pool of Hispanic engineers and STEM professionals across Austin.' },
+              { Icon: Star,      title: 'Community Impact',   desc: 'Be part of a mission that empowers underrepresented communities in STEM — and be seen doing it.' },
+            ].map(({ Icon, title, desc }, i) => (
+              <motion.div
+                key={title}
+                initial={{ opacity: 0, x: 24 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                style={{
+                  display: 'flex', gap: 16, alignItems: 'flex-start',
+                  padding: '18px 20px', borderRadius: 14,
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  backdropFilter: 'blur(8px)',
+                }}
+              >
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(253,101,47,0.15)', border: '1px solid rgba(253,101,47,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon size={18} color="#FD652F" />
+                </div>
+                <div>
+                  <p style={{ margin: '0 0 4px', fontWeight: 800, fontSize: '0.9rem', color: '#fff' }}>{title}</p>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>{desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
         </div>
       </motion.section>
 
       {/*
           SECTION 6 — DONATE
       ══════════════════════════════════════ */}
-      <motion.section {...fadeUp} className="relative overflow-hidden py-28 px-6 text-center" style={{ background: 'linear-gradient(135deg, #FD652F 0%, #D33A02 100%)' }}>
-        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+      <motion.section {...fadeUp} className="relative overflow-hidden py-24 px-6" style={{ background: '#f8fafc' }}>
 
-        <div className="relative z-10 max-w-2xl mx-auto">
-          <span className="inline-block px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase mb-6" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
-            Make an Impact
-          </span>
-          <h2 className="font-black leading-tight mb-6" style={{ color: '#fff', fontSize: 'clamp(2.5rem, 6vw, 4rem)' }}>
-            Donate!
-          </h2>
-          <p className="leading-relaxed mb-10" style={{ color: 'rgba(255,255,255,0.9)', fontSize: 'clamp(1rem, 2vw, 1.15rem)' }}>
-            Your generosity helps us achieve our goals of giving back to the community — from scholarships to students, to donations to food banks, and so much more.
-          </p>
-          <a
-            href="#/donations"
-            className="inline-block font-black rounded-full px-10 py-4 transition-all duration-200 hover:-translate-y-1"
-            style={{ background: '#fff', color: '#D33A02', textDecoration: 'none', fontSize: '1.1rem', boxShadow: '0 8px 30px rgba(0,0,0,0.2)' }}
-            onMouseOver={e => e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.3)'}
-            onMouseOut={e => e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.2)'}
-          >
-            Donate Now
-          </a>
-          <p className="mt-6 text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.75)' }}>
-            Thank you for your support!
-          </p>
+        <div className="relative z-10 max-w-6xl mx-auto" style={{ display: 'flex', flexWrap: 'wrap', gap: 64, alignItems: 'center', justifyContent: 'center' }}>
+
+          {/* left — impact cards */}
+          <div style={{ flex: '1 1 280px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            {[
+              { Icon: GraduationCap, label: 'Scholarships',      color: '#001F5B', accent: '#0070C0', desc: 'Helping students fund their STEM education.' },
+              { Icon: Heart,         label: 'Food Drives',        color: '#D33A02', accent: '#FD652F', desc: 'Giving back through local community drives.' },
+              { Icon: Coffee,        label: 'Networking Events',  color: '#0070C0', accent: '#72A9BE', desc: 'Fueling connections over every happy hour.' },
+              { Icon: Trophy,        label: 'Awards & Grants',    color: '#FD652F', accent: '#D33A02', desc: 'Recognizing excellence in our community.' },
+            ].map(({ Icon, label, color, accent, desc }, i) => (
+              <motion.div
+                key={label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                whileHover={{ y: -4 }}
+                style={{
+                  padding: '20px 16px', borderRadius: 16,
+                  background: `linear-gradient(135deg, ${color}08, ${accent}05)`,
+                  border: `1px solid ${color}18`,
+                  display: 'flex', flexDirection: 'column', gap: 10,
+                }}
+              >
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon size={20} color={color} />
+                </div>
+                <p style={{ margin: 0, fontWeight: 900, fontSize: '0.85rem', color: '#0f172a' }}>{label}</p>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8', lineHeight: 1.5 }}>{desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* right — CTA */}
+          <div style={{ flex: '1 1 300px', maxWidth: 420 }}>
+            <span style={{ display: 'inline-block', fontSize: '0.7rem', fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '6px 16px', borderRadius: 999, marginBottom: 20, background: 'rgba(211,58,2,0.08)', color: '#D33A02', border: '1px solid rgba(211,58,2,0.2)' }}>
+              Make an Impact
+            </span>
+            <h2 style={{ fontWeight: 900, color: '#001F5B', fontSize: 'clamp(2.2rem, 5vw, 3.2rem)', lineHeight: 1.1, letterSpacing: '-0.02em', marginBottom: 20 }}>
+              Every Dollar Fuels the Familia
+            </h2>
+            <p style={{ color: '#64748b', fontSize: '1.05rem', lineHeight: 1.75, marginBottom: 36 }}>
+              Your generosity goes directly into scholarships, community events, food drives, and everything else that keeps SHPE Austin running and growing.
+            </p>
+            <motion.a
+              href="#/donations"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 10,
+                fontWeight: 900, fontSize: '1rem', borderRadius: 14,
+                padding: '16px 32px',
+                background: 'linear-gradient(135deg, #FD652F, #D33A02)',
+                color: '#fff', textDecoration: 'none',
+                boxShadow: '0 8px 28px rgba(253,101,47,0.35)',
+              }}
+            >
+              <Heart size={18} /> Donate Now
+            </motion.a>
+            <p style={{ marginTop: 16, fontSize: '0.82rem', color: '#94a3b8', fontWeight: 600 }}>
+              Thank you for your support — it truly matters. 🙏
+            </p>
+          </div>
+
         </div>
       </motion.section>
 

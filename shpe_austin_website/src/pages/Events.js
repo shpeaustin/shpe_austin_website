@@ -1,12 +1,53 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { createClient } from 'contentful';
 import {
   Award, Globe, Plane, MapPin, Plus,
   Wine, Gift, Handshake,
   Activity, Waves, Heart,
-  Users, Camera, ChevronRight, Zap
+  Users, Camera, ChevronRight, ChevronLeft, Zap
 } from 'lucide-react';
+
+const contentfulClient =
+  process.env.REACT_APP_CONTENTFUL_SPACE_ID && process.env.REACT_APP_CONTENTFUL_ACCESS_TOKEN
+    ? createClient({
+        space: process.env.REACT_APP_CONTENTFUL_SPACE_ID,
+        accessToken: process.env.REACT_APP_CONTENTFUL_ACCESS_TOKEN,
+      })
+    : null;
+
+function usePastEventPhotos() {
+  const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!contentfulClient) { setLoading(false); return; }
+    contentfulClient
+      .getEntries({ content_type: 'pastEventGallery', order: '-fields.eventDate' })
+      .then(res => {
+        const flat = [];
+        res.items.forEach(item => {
+          const label = item.fields.eventName ?? '';
+          (item.fields.photos ?? []).forEach((p, i) => {
+            if (p.fields?.file?.url) {
+              flat.push({
+                url: `https:${p.fields.file.url}`,
+                alt: p.fields?.title ?? `${label} — photo ${i + 1}`,
+                label,
+              });
+            }
+          });
+        });
+        setPhotos(flat);
+      })
+      .catch(err => setError(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { photos, loading, error };
+}
 
 
 
@@ -258,12 +299,30 @@ function PlaceholderSlide({ current, total }) {
 function Carousel({ photos = [] }) {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(1);
+  const [paused, setPaused] = useState(false);
+  const [fitMap, setFitMap] = useState({});
   const total = photos.length;
 
-  const go = (next) => {
+  const handleImageLoad = useCallback((e, url) => {
+    const { naturalWidth, naturalHeight } = e.currentTarget;
+    const isPortrait = naturalHeight > naturalWidth;
+    setFitMap(prev => ({ ...prev, [url]: isPortrait ? 'contain' : 'cover' }));
+  }, []);
+
+  const go = useCallback((next) => {
     setDirection(next > current ? 1 : -1);
     setCurrent((next + total) % total);
-  };
+  }, [current, total]);
+
+  // auto-advance every 4 s
+  useEffect(() => {
+    if (total <= 1 || paused) return;
+    const id = setInterval(() => {
+      setDirection(1);
+      setCurrent(c => (c + 1) % total);
+    }, 4000);
+    return () => clearInterval(id);
+  }, [total, paused]);
 
   const variants = {
     enter: (d) => ({ x: d > 0 ? '100%' : '-100%', opacity: 0, scale: 0.96 }),
@@ -271,24 +330,22 @@ function Carousel({ photos = [] }) {
     exit: (d) => ({ x: d > 0 ? '-100%' : '100%', opacity: 0, scale: 0.96, transition: { duration: 0.35, ease: [0.32, 0.72, 0, 1] } }),
   };
 
-  // next/prev indices for the peek thumbnails
-  const prev = (current - 1 + total) % total;
-  const next = (current + 1) % total;
-
   // no photos yet — single animated placeholder, no navigation
   if (total === 0) {
     return (
-      <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: 400, boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: 480, boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
         <PlaceholderSlide current={0} total={0} />
       </div>
     );
   }
 
   return (
-    <div style={{ position: 'relative', userSelect: 'none' }}>
-
-
-      <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: 400, background: '#0f172a', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
+    <div
+      style={{ position: 'relative', userSelect: 'none' }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: 480, background: '#0f172a', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={current}
@@ -299,26 +356,59 @@ function Carousel({ photos = [] }) {
             exit="exit"
             style={{ position: 'absolute', inset: 0 }}
           >
-            {photos[current]
-              ? <img src={photos[current].url} alt={photos[current].alt ?? `Event photo ${current + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              : <PlaceholderSlide current={current} total={total} />
-            }
+            <img
+              src={photos[current].url}
+              alt={photos[current].alt}
+              onLoad={e => handleImageLoad(e, photos[current].url)}
+              style={{
+                width: '100%', height: '100%', display: 'block',
+                objectFit: fitMap[photos[current].url] ?? 'cover',
+              }}
+            />
+            {/* gradient + label overlay */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 50%)',
+              pointerEvents: 'none',
+            }} />
+            {photos[current].label && (
+              <div style={{
+                position: 'absolute', bottom: 20, left: 20,
+                fontSize: '0.8rem', fontWeight: 800, color: '#fff',
+                letterSpacing: '0.04em', textShadow: '0 1px 4px rgba(0,0,0,0.5)',
+              }}>
+                {photos[current].label}
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
 
-        {total > 1 && (
+        {/* counter */}
+        <div style={{
+          position: 'absolute', top: 16, right: 16, zIndex: 10,
+          padding: '4px 12px', borderRadius: 999,
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
+          fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.7)',
+          letterSpacing: '0.05em',
+        }}>
+          {current + 1} / {total}
+        </div>
+
+        {/* pause indicator */}
+        {paused && (
           <div style={{
-            position: 'absolute', top: 16, right: 16, zIndex: 10,
-            padding: '4px 12px', borderRadius: 999,
-            background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
-            fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.7)',
-            letterSpacing: '0.05em',
+            position: 'absolute', top: 16, left: 16, zIndex: 10,
+            padding: '4px 10px', borderRadius: 999,
+            background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)',
+            fontSize: '0.65rem', fontWeight: 800, color: 'rgba(255,255,255,0.5)',
+            letterSpacing: '0.1em', textTransform: 'uppercase',
           }}>
-            {current + 1} / {total}
+            Paused
           </div>
         )}
 
-        {total > 1 && [{ dir: -1, side: 'left', icon: '←' }, { dir: 1, side: 'right', icon: '→' }].map(({ dir, side, icon }) => (
+        {/* prev / next */}
+        {[{ dir: -1, side: 'left', Icon: ChevronLeft }, { dir: 1, side: 'right', Icon: ChevronRight }].map(({ dir, side, Icon: Ic }) => (
           <button
             key={side}
             onClick={() => go(current + dir)}
@@ -327,51 +417,92 @@ function Carousel({ photos = [] }) {
               transform: 'translateY(-50%)', zIndex: 10,
               width: 44, height: 44, borderRadius: '50%', border: 'none', cursor: 'pointer',
               background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)',
-              color: 'white', fontSize: '1.1rem', fontWeight: 700,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'background 0.2s ease',
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.22)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.22)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
           >
-            {icon}
+            <Ic size={20} />
           </button>
         ))}
+
+        {/* progress bar */}
+        {!paused && (
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, background: 'rgba(255,255,255,0.15)', zIndex: 10 }}>
+            <motion.div
+              key={current}
+              initial={{ width: '0%' }}
+              animate={{ width: '100%' }}
+              transition={{ duration: 4, ease: 'linear' }}
+              style={{ height: '100%', background: 'linear-gradient(90deg, #FD652F, #D33A02)' }}
+            />
+          </div>
+        )}
       </div>
 
-
-      {total > 1 && (
-        <>
-          <div style={{ display: 'flex', gap: 10, marginTop: 14, justifyContent: 'center' }}>
-            {photos.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => go(i)}
-                style={{
-                  padding: 0, border: 'none', cursor: 'pointer', borderRadius: 10,
-                  width: i === current ? 48 : 36, height: 36,
-                  background: i === current ? 'linear-gradient(135deg, #FD652F, #D33A02)' : 'linear-gradient(135deg, #e2e8f0, #cbd5e1)',
-                  flexShrink: 0,
-                  transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-                  boxShadow: i === current ? '0 4px 12px rgba(253,101,47,0.4)' : 'none',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}
-              >
-                {i === current && <Camera size={14} color="white" />}
-              </button>
-            ))}
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, padding: '0 4px' }}>
-            <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>← {photos[prev]?.alt ?? `Photo ${prev + 1}`}</span>
-            <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>{photos[next]?.alt ?? `Photo ${next + 1}`} →</span>
-          </div>
-        </>
-      )}
+      {/* dot indicators */}
+      <div style={{ display: 'flex', gap: 6, marginTop: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+        {photos.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => go(i)}
+            style={{
+              padding: 0, border: 'none', cursor: 'pointer', borderRadius: 999,
+              width: i === current ? 24 : 8, height: 8,
+              background: i === current ? '#FD652F' : '#d1d5db',
+              flexShrink: 0,
+              transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+              boxShadow: i === current ? '0 2px 8px rgba(253,101,47,0.45)' : 'none',
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
 
 
+
+// ── Past events section ───────────────────────────────────────────────────────
+function PastEventsSection() {
+  const { photos, loading, error } = usePastEventPhotos();
+
+  return (
+    <section style={{ padding: '72px 24px', background: 'white' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+          <div style={{ width: 6, height: 40, borderRadius: 999, background: 'linear-gradient(180deg, #FD652F, #D33A02)' }} />
+          <h2 style={{ fontWeight: 900, fontSize: '2rem', color: '#D33A02', margin: 0, letterSpacing: '-0.02em' }}>
+            Previous Events
+          </h2>
+        </div>
+        <p style={{ color: '#94a3b8', fontSize: '0.9rem', paddingLeft: 18, marginBottom: 32 }}>
+          Hover to pause · use arrows to jump
+        </p>
+
+        {/* loading skeleton */}
+        {loading && (
+          <div style={{
+            borderRadius: 20, height: 480, background: 'linear-gradient(135deg, #e2e8f0, #cbd5e1)',
+            animation: 'shimmer 1.5s infinite linear',
+            backgroundSize: '200% 100%',
+          }} />
+        )}
+
+        {error && (
+          <p style={{ color: '#94a3b8', fontSize: '0.95rem', textAlign: 'center', padding: '40px 0' }}>
+            Unable to load photos right now — check back soon!
+          </p>
+        )}
+
+        {!loading && !error && (
+          <Carousel photos={photos} />
+        )}
+      </div>
+    </section>
+  );
+}
 
 export default function Events() {
   const [active, setActive] = useState('professional');
@@ -489,22 +620,8 @@ export default function Events() {
         </motion.section>
       </AnimatePresence>
 
-      
-      <section style={{ padding: '72px 0', background: 'white', overflow: 'hidden' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', paddingLeft: 24, marginBottom: 32 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-            <div style={{ width: 6, height: 40, borderRadius: 999, background: 'linear-gradient(180deg, #FD652F, #D33A02)' }} />
-            <h2 style={{ fontWeight: 900, fontSize: '2rem', color: '#D33A02', margin: 0, letterSpacing: '-0.02em' }}>
-              Previous Events
-            </h2>
-          </div>
-          <p style={{ color: '#94a3b8', fontSize: '0.9rem', paddingLeft: 18, margin: 0 }}>
-            Drag to explore — photos coming soon
-          </p>
-        </div>
 
-        <Carousel photos={[]} />
-      </section>
+      <PastEventsSection />
 
       
       <section style={{ position: 'relative', overflow: 'hidden', padding: '96px 24px', background: 'linear-gradient(135deg, #001F5B 0%, #0a1a3a 100%)' }}>
