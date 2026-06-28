@@ -40,13 +40,13 @@ export function MemberCard({ member, index, onSelect }: CardProps) {
       whileHover="hover"
     >
       {/* photo area — fixed height so all cards align */}
-      <div className="relative overflow-hidden flex-shrink-0" style={{ height: 220 }}>
+      <div className="relative overflow-hidden flex-shrink-0" style={{ height: 220, background: '#080d1a' }}>
         {member.photo ? (
           <motion.img
             src={member.photo}
             alt={member.name}
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ objectPosition: member.photoPosition ?? 'center top' }}
+            className="absolute inset-0 w-full h-full"
+            style={{ objectFit: 'contain', objectPosition: member.photoPosition ?? 'center top' }}
             variants={{ hover: { scale: 1.05 } }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             draggable={false}
@@ -149,8 +149,8 @@ export function ExpandedProfile({ member, onClose }: ExpandedProps) {
                   <img
                     src={member.photo}
                     alt={member.name}
-                    className="w-full h-full object-cover"
-                    style={{ objectPosition: member.photoPosition ?? 'center top' }}
+                    className="w-full h-full"
+                    style={{ objectFit: 'contain', objectPosition: member.photoPosition ?? 'center top', background: '#080d1a' }}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center" style={{ background: member.gradient }}>
