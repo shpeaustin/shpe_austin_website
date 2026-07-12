@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.b9e8e262.css",
-    "main.js": "/static/js/main.ab548314.js",
+    "main.css": "/static/css/main.39faa94f.css",
+    "main.js": "/static/js/main.95c8bd3b.js",
     "static/js/453.170c19b2.chunk.js": "/static/js/453.170c19b2.chunk.js",
     "static/media/shpe_animated_video.mp4": "/static/media/shpe_animated_video.eb069c548c51a0d4d384.mp4",
     "static/media/anamaria_torres.jpg": "/static/media/anamaria_torres.696c193b28fc02e5a21e.jpg",
@@ -21,12 +21,12 @@
     "static/media/SHPE_stacked_logo_national.png": "/static/media/SHPE_stacked_logo_national.eb9e525f3bec3249e852.png",
     "index.html": "/index.html",
     "static/media/arm_logo.svg": "/static/media/arm_logo.f165a329d3b5c96b1fae84c37c07b9fd.svg",
-    "main.b9e8e262.css.map": "/static/css/main.b9e8e262.css.map",
-    "main.ab548314.js.map": "/static/js/main.ab548314.js.map",
+    "main.39faa94f.css.map": "/static/css/main.39faa94f.css.map",
+    "main.95c8bd3b.js.map": "/static/js/main.95c8bd3b.js.map",
     "453.170c19b2.chunk.js.map": "/static/js/453.170c19b2.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.b9e8e262.css",
-    "static/js/main.ab548314.js"
+    "static/css/main.39faa94f.css",
+    "static/js/main.95c8bd3b.js"
   ]
 }
