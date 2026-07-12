@@ -73,10 +73,10 @@ export function MemberCard({ member, index, onSelect }: CardProps) {
           </motion.div>
         )}
 
-        {/* fade into white tab */}
+        {/* fade into white tab — kept short so photo isn't eaten on mobile */}
         <div
           className="absolute bottom-0 left-0 right-0 pointer-events-none"
-          style={{ height: 52, background: 'linear-gradient(to top, #ffffff, transparent)' }}
+          style={{ height: 24, background: 'linear-gradient(to top, rgba(255,255,255,0.85), transparent)' }}
         />
         <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: member.accent }} />
       </div>
@@ -263,52 +263,50 @@ export function ExpandedProfile({ member, onClose }: ExpandedProps) {
               </div>
 
               {/* white name / position strip — below photo, never on the face */}
-              <div
-                className="flex items-center justify-between gap-4 bg-white"
-                style={{ padding: '18px 28px 16px' }}
-              >
-                <div style={{ minWidth: 0 }}>
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      fontSize: '0.65rem',
-                      fontWeight: 900,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.1em',
-                      padding: '3px 10px',
-                      borderRadius: 6,
-                      marginBottom: 8,
-                      background: member.accent + '22',
-                      color: member.accent,
-                      border: `1px solid ${member.accent}44`,
-                    }}
-                  >
-                    {member.position}
-                  </span>
-                  <h2
-                    style={{
-                      fontWeight: 900,
-                      fontSize: 'clamp(1.3rem, 3.5vw, 1.75rem)',
-                      letterSpacing: '-0.02em',
-                      lineHeight: 1.1,
-                      color: '#0f172a',
-                      marginBottom: 4,
-                    }}
-                  >
-                    {member.name}
-                  </h2>
-                  <p style={{ fontSize: '0.85rem', fontWeight: 500, color: '#6b7280' }}>
-                    {member.profession}
-                  </p>
-                </div>
+              <div className="bg-white" style={{ padding: '16px 28px 14px' }}>
+                {/* position badge — no letter-spacing crush on narrow screens */}
+                <span
+                  style={{
+                    display: 'inline-block',
+                    fontSize: '0.62rem',
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    padding: '3px 10px',
+                    borderRadius: 6,
+                    marginBottom: 7,
+                    background: member.accent + '22',
+                    color: member.accent,
+                    border: `1px solid ${member.accent}44`,
+                  }}
+                >
+                  {member.position}
+                </span>
+                <h2
+                  style={{
+                    fontWeight: 900,
+                    fontSize: 'clamp(1.25rem, 3.5vw, 1.75rem)',
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1.1,
+                    color: '#0f172a',
+                    marginBottom: 4,
+                  }}
+                >
+                  {member.name}
+                </h2>
+                <p style={{ fontSize: '0.84rem', fontWeight: 500, color: '#6b7280', marginBottom: 12 }}>
+                  {member.profession}
+                </p>
 
-                {/* SHPE logo — original colors on white background */}
-                <img
-                  src={require('../assets/logos/SHPE_austin_horiz_logo.png')}
-                  alt="SHPE Austin"
-                  style={{ width: 180, flexShrink: 0, opacity: 0.9 }}
-                  draggable={false}
-                />
+                {/* SHPE logo — in the flow below text, right-aligned, never overlaps */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <img
+                    src={require('../assets/logos/SHPE_austin_horiz_logo.png')}
+                    alt="SHPE Austin"
+                    style={{ width: 110, opacity: 0.9 }}
+                    draggable={false}
+                  />
+                </div>
               </div>
 
               {/* dark details */}

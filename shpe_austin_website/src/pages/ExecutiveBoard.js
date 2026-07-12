@@ -112,6 +112,7 @@ const board = [
     funFact: 'I grew up in a 4,000 person agricultural town in West, Texas, about as far from Silicon Valley as you can get, and somehow ended up in STEM.',
     whyShpe: 'I joined SHPE in college and it was a great experience. I also did lots of mentoring so joining the professional chapter was a way to connect with mi familia again and pay it forward.',
     photo: require('../assets/executive_board/luigi_medrano.jpg'),
+    photoPosition: 'center 18%',
     accent: '#001F5B',
     gradient: 'linear-gradient(135deg, #001F5B 0%, #0a2a5e 100%)',
   },
