@@ -19,7 +19,8 @@ function initials(name: string) {
   return name.split(' ').map((w) => w[0]).join('');
 }
 
-// ── Grid card: photo top, info bottom ───────────────────────────────────────
+// ── Grid card ────────────────────────────────────────────────────────────────
+// Photo: 220px cover, face centered. Info tab: fixed 118px so all cards align.
 
 interface CardProps {
   member: Member;
@@ -35,18 +36,26 @@ export function MemberCard({ member, index, onSelect }: CardProps) {
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.5, delay: (index % 4) * 0.07, ease: [0.22, 1, 0.36, 1] }}
       onClick={() => onSelect(member)}
-      className="relative overflow-hidden rounded-2xl focus:outline-none group text-left w-full flex flex-col"
-      style={{ background: '#0f1424', border: '1px solid rgba(255,255,255,0.07)' }}
+      className="relative overflow-hidden rounded-2xl focus:outline-none group text-left w-full"
+      style={{
+        background: '#ffffff',
+        border: '1px solid #e5e7eb',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+        // Fixed total height = photo(220) + info(148) so every card is identical
+        height: 368,
+        display: 'flex',
+        flexDirection: 'column',
+      }}
       whileHover="hover"
     >
-      {/* photo area — fixed height so all cards align */}
-      <div className="relative overflow-hidden flex-shrink-0" style={{ height: 220, background: '#080d1a' }}>
+      {/* photo — cover fill, face kept in view via objectPosition */}
+      <div className="relative overflow-hidden flex-shrink-0" style={{ height: 220 }}>
         {member.photo ? (
           <motion.img
             src={member.photo}
             alt={member.name}
             className="absolute inset-0 w-full h-full"
-            style={{ objectFit: 'contain', objectPosition: member.photoPosition ?? 'center top' }}
+            style={{ objectFit: 'cover', objectPosition: member.photoPosition ?? 'center top' }}
             variants={{ hover: { scale: 1.05 } }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             draggable={false}
@@ -64,43 +73,114 @@ export function MemberCard({ member, index, onSelect }: CardProps) {
           </motion.div>
         )}
 
-        {/* subtle bottom fade into the card body */}
+        {/* fade into white tab */}
         <div
           className="absolute bottom-0 left-0 right-0 pointer-events-none"
-          style={{ height: 48, background: 'linear-gradient(to top, #0f1424, transparent)' }}
+          style={{ height: 52, background: 'linear-gradient(to top, #ffffff, transparent)' }}
         />
-
-        {/* accent top bar */}
         <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: member.accent }} />
       </div>
 
-      {/* info area */}
-      <div className="flex flex-col gap-1 px-5 py-4 flex-1">
+      {/* white info tab — fixed height so all cards align perfectly */}
+      <div
+        style={{
+          position: 'relative',
+          height: 148,
+          flexShrink: 0,
+          background: '#ffffff',
+          padding: '12px 20px 12px 20px',
+          overflow: 'hidden',
+        }}
+      >
+        {/* position — single line */}
         <p
-          className="text-xs font-black uppercase tracking-widest"
-          style={{ color: 'rgba(255,255,255,0.5)', letterSpacing: '0.1em' }}
+          style={{
+            fontSize: '0.65rem',
+            fontWeight: 900,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            color: member.accent,
+            marginBottom: 3,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
         >
           {member.position}
         </p>
-        <p className="font-black text-white leading-tight" style={{ fontSize: '1rem' }}>
+
+        {/* name — single line */}
+        <p
+          style={{
+            fontSize: '0.97rem',
+            fontWeight: 900,
+            color: '#0f172a',
+            lineHeight: 1.25,
+            marginBottom: 4,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
           {member.name}
         </p>
-        <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
-          {member.profession} · {member.company}
+
+        {/* profession — up to 2 lines so long titles show fully */}
+        <p
+          style={{
+            fontSize: '0.72rem',
+            color: '#374151',
+            lineHeight: 1.4,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            marginBottom: 2,
+          } as React.CSSProperties}
+        >
+          {member.profession}
+        </p>
+
+        {/* company — single line */}
+        <p
+          style={{
+            fontSize: '0.7rem',
+            color: '#6b7280',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {member.company}
         </p>
 
         {/* hover CTA */}
         <motion.div
-          className="flex items-center gap-1.5 mt-3"
+          style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}
           variants={{ hover: { opacity: 1, x: 0 } }}
           initial={{ opacity: 0, x: -6 }}
           transition={{ duration: 0.2 }}
         >
-          <span className="text-xs font-bold" style={{ color: member.accent }}>View Profile</span>
+          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: member.accent }}>View Profile</span>
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={member.accent} strokeWidth="2.5" strokeLinecap="round">
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
         </motion.div>
+
+        {/* SHPE Austin logo — bottom-right, original colors on white, enlarged */}
+        <img
+          src={require('../assets/logos/SHPE_austin_horiz_logo.png')}
+          alt="SHPE Austin"
+          style={{
+            position: 'absolute',
+            bottom: 10,
+            right: 12,
+            width: 88,
+            opacity: 0.85,
+            pointerEvents: 'none',
+          }}
+          draggable={false}
+        />
       </div>
     </motion.button>
   );
@@ -141,16 +221,22 @@ export function ExpandedProfile({ member, onClose }: ExpandedProps) {
             exit={{ opacity: 0, scale: 0.92, x: '-50%', y: '-46%' }}
             transition={{ type: 'spring', stiffness: 340, damping: 30 }}
           >
-            <div className="rounded-3xl overflow-hidden flex flex-col" style={{ background: '#0a0f1e', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="rounded-3xl overflow-hidden flex flex-col" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
 
-              {/* photo hero */}
-              <div className="relative flex-shrink-0" style={{ height: 260 }}>
+              {/* photo — contain so the full photo shows, dark letterbox background */}
+              <div
+                className="relative flex-shrink-0"
+                style={{ height: 300, background: '#080d1a' }}
+              >
                 {member.photo ? (
                   <img
                     src={member.photo}
                     alt={member.name}
                     className="w-full h-full"
-                    style={{ objectFit: 'contain', objectPosition: member.photoPosition ?? 'center top', background: '#080d1a' }}
+                    style={{
+                      objectFit: 'contain',
+                      objectPosition: member.photoPosition ?? 'center top',
+                    }}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center" style={{ background: member.gradient }}>
@@ -158,7 +244,11 @@ export function ExpandedProfile({ member, onClose }: ExpandedProps) {
                   </div>
                 )}
 
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #0a0f1e 0%, rgba(10,15,30,0.4) 60%, transparent 100%)' }} />
+                {/* bottom fade into white strip */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 pointer-events-none"
+                  style={{ height: 60, background: 'linear-gradient(to top, #ffffff, transparent)' }}
+                />
                 <div className="absolute top-0 left-0 right-0 h-1" style={{ background: member.accent }} />
 
                 <button
@@ -170,30 +260,73 @@ export function ExpandedProfile({ member, onClose }: ExpandedProps) {
                     <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
                 </button>
+              </div>
 
-                <div className="absolute bottom-0 left-0 px-7 pb-6">
+              {/* white name / position strip — below photo, never on the face */}
+              <div
+                className="flex items-center justify-between gap-4 bg-white"
+                style={{ padding: '18px 28px 16px' }}
+              >
+                <div style={{ minWidth: 0 }}>
                   <span
-                    className="text-xs font-black uppercase tracking-widest px-2.5 py-1 rounded-md mb-3 inline-block"
-                    style={{ background: member.accent + '33', color: member.accent, border: `1px solid ${member.accent}55` }}
+                    style={{
+                      display: 'inline-block',
+                      fontSize: '0.65rem',
+                      fontWeight: 900,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                      padding: '3px 10px',
+                      borderRadius: 6,
+                      marginBottom: 8,
+                      background: member.accent + '22',
+                      color: member.accent,
+                      border: `1px solid ${member.accent}44`,
+                    }}
                   >
                     {member.position}
                   </span>
-                  <h2 className="font-black text-white" style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                  <h2
+                    style={{
+                      fontWeight: 900,
+                      fontSize: 'clamp(1.3rem, 3.5vw, 1.75rem)',
+                      letterSpacing: '-0.02em',
+                      lineHeight: 1.1,
+                      color: '#0f172a',
+                      marginBottom: 4,
+                    }}
+                  >
                     {member.name}
                   </h2>
-                  <p className="text-sm mt-1 font-medium" style={{ color: 'rgba(255,255,255,0.55)' }}>{member.profession}</p>
+                  <p style={{ fontSize: '0.85rem', fontWeight: 500, color: '#6b7280' }}>
+                    {member.profession}
+                  </p>
                 </div>
+
+                {/* SHPE logo — original colors on white background */}
+                <img
+                  src={require('../assets/logos/SHPE_austin_horiz_logo.png')}
+                  alt="SHPE Austin"
+                  style={{ width: 180, flexShrink: 0, opacity: 0.9 }}
+                  draggable={false}
+                />
               </div>
 
-              {/* details */}
-              <div className="px-7 py-6 flex flex-col gap-4 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 260px)' }}>
+              {/* dark details */}
+              <div
+                className="flex flex-col gap-4 overflow-y-auto"
+                style={{
+                  background: '#0a0f1e',
+                  padding: '20px 28px 24px',
+                  maxHeight: 'calc(90vh - 300px - 96px)',
+                }}
+              >
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                    <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Company</p>
+                  <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}>
+                    <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Company</p>
                     <p className="text-sm font-semibold text-white">{member.company}</p>
                   </div>
-                  <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                    <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>University</p>
+                  <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}>
+                    <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>University</p>
                     <p className="text-sm font-semibold text-white">{member.school}</p>
                   </div>
                 </div>
@@ -201,15 +334,15 @@ export function ExpandedProfile({ member, onClose }: ExpandedProps) {
                 {(member.funFact || member.whyShpe) && (
                   <div className="flex flex-col gap-3">
                     {member.funFact && (
-                      <div className="rounded-xl px-4 py-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                        <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>Fun Fact</p>
-                        <p className="text-sm leading-relaxed italic" style={{ color: 'rgba(255,255,255,0.75)' }}>"{member.funFact}"</p>
+                      <div className="rounded-xl px-4 py-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}>
+                        <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>Fun Fact</p>
+                        <p className="text-sm leading-relaxed italic" style={{ color: 'rgba(255,255,255,0.8)' }}>"{member.funFact}"</p>
                       </div>
                     )}
                     {member.whyShpe && (
-                      <div className="rounded-xl px-4 py-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                        <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>Why SHPE Austin?</p>
-                        <p className="text-sm leading-relaxed italic" style={{ color: 'rgba(255,255,255,0.75)' }}>"{member.whyShpe}"</p>
+                      <div className="rounded-xl px-4 py-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}>
+                        <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>Why SHPE Austin?</p>
+                        <p className="text-sm leading-relaxed italic" style={{ color: 'rgba(255,255,255,0.8)' }}>"{member.whyShpe}"</p>
                       </div>
                     )}
                   </div>
