@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FileText } from 'lucide-react';
+import irs2025 from '../assets/irs_forms/2025-SHPE-Austin-990-N.pdf';
 import irs2024 from '../assets/irs_forms/2024-SHPE-Austin-990-N.pdf';
 import irs2023 from '../assets/irs_forms/2023-SHPE-Austin-990-N-3.pdf';
 
@@ -79,6 +80,7 @@ const stats = [
 ];
 
 const irsDocuments = [
+  { label: '990-N Public IRS Form — 2025', href: irs2025 },
   { label: '990-N Public IRS Form — 2024', href: irs2024 },
   { label: '990-N Public IRS Form — 2023', href: irs2023 },
 ];
