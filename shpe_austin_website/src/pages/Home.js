@@ -41,6 +41,16 @@ function getTheme(tag) {
   return THEME_MAP[(tag ?? '').toLowerCase()] ?? THEME_MAP.default;
 }
 
+function renderDescription(text) {
+  if (!text) return null;
+  return text.split(/(__[^_]+__)/).map((part, i) => {
+    if (part.startsWith('__') && part.endsWith('__')) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
 function formatEventDate(isoString) {
   if (!isoString) return '';
   const date = new Date(isoString);
@@ -941,7 +951,7 @@ export default function Home() {
                         {ev.title}
                       </h3>
                       <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: '#6b7280', marginBottom: 28 }}>
-                        {ev.description}
+                        {renderDescription(ev.description)}
                       </p>
                       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                         <a
