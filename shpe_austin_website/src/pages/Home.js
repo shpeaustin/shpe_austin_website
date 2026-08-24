@@ -33,6 +33,7 @@ const THEME_MAP = {
   'virtual event':  { border: '#0070C0', tagBg: 'rgba(0,112,192,0.1)',   tagColor: '#0070C0' },
   'workshop':       { border: '#001F5B', tagBg: 'rgba(0,31,91,0.1)',     tagColor: '#001F5B' },
   'networking':     { border: '#72A9BE', tagBg: 'rgba(114,169,190,0.1)', tagColor: '#72A9BE' },
+  'event':          { border: '#7C3AED', tagBg: 'rgba(124,58,237,0.1)',  tagColor: '#7C3AED' },
   'default':        { border: '#0070C0', tagBg: 'rgba(0,112,192,0.1)',   tagColor: '#0070C0' },
 };
 
@@ -949,7 +950,7 @@ export default function Home() {
                           onMouseOver={e => { if (!ev.isPast) { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
                           onMouseOut={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
                         >
-                          {ev.isPast ? 'Event Ended' : 'RSVP Here'}
+                          {ev.isPast ? 'Event Ended' : (ev.tag?.toLowerCase() === 'event' ? 'Register' : 'RSVP Here')}
                         </a>
                         {ev.flyer && (
                           <button
