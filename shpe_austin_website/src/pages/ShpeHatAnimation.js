@@ -6,6 +6,9 @@ export default function ShpeHatAnimation({ onComplete, speed = 1 }) {
   const canvasRef = useRef(null);
   const sceneRef = useRef(null);
   const wrapperRef = useRef(null);
+  const flickStateRef = useRef('idle'); // 'idle' | 'flicking' | 'returning'
+  const flickAnimIdRef = useRef(null);
+  const flickStartRef = useRef(null);
 
   useEffect(() => {
     function scaleScene() {
@@ -135,10 +138,53 @@ export default function ShpeHatAnimation({ onComplete, speed = 1 }) {
 
       if (raw < 1) {
         animId = requestAnimationFrame(animate);
-      } else if (onComplete) {
-        onComplete();
+      } else {
+        flickStateRef.current = 'idle';
+        hatWrap.style.cursor = 'pointer';
+        if (onComplete) onComplete();
       }
     }
+
+    // --- flick arc animation: hat goes up and comes back down in one motion ---
+    const FLICK_DURATION = 1200;
+    const ARC_HEIGHT = 90;
+
+    function animateFlick(ts) {
+      if (!flickStartRef.current) flickStartRef.current = ts;
+      const raw = Math.min((ts - flickStartRef.current) / FLICK_DURATION, 1);
+
+      // straight vertical arc: up then back down, no horizontal movement
+      const y = HAT_FINAL_Y - Math.sin(raw * Math.PI) * ARC_HEIGHT;
+
+      // one full CCW spin synced to the arc
+      const rot = lerp(FINAL_TILT, FINAL_TILT - 720, raw);
+
+      hatWrap.style.left = HAT_REST_X + 'px';
+      hatWrap.style.top  = y + 'px';
+      hatImg.style.transform = `rotate(${rot.toFixed(2)}deg)`;
+
+      if (raw < 1) {
+        flickAnimIdRef.current = requestAnimationFrame(animateFlick);
+      } else {
+        hatWrap.style.left = HAT_REST_X + 'px';
+        hatWrap.style.top  = HAT_FINAL_Y + 'px';
+        hatImg.style.transform = `rotate(${FINAL_TILT}deg)`;
+        flickStateRef.current = 'idle';
+        hatWrap.style.cursor = 'pointer';
+      }
+    }
+
+    function handleHatClick() {
+      if (flickStateRef.current !== 'idle') return;
+      if (flickAnimIdRef.current) cancelAnimationFrame(flickAnimIdRef.current);
+      hatWrap.style.cursor = 'default';
+      flickStateRef.current = 'flicking';
+      flickStartRef.current = null;
+      ctx.clearRect(0, 0, SCENE_W, SCENE_H);
+      flickAnimIdRef.current = requestAnimationFrame(animateFlick);
+    }
+
+    hatWrap.addEventListener('click', handleHatClick);
 
     startTime = null;
     ctx.clearRect(0, 0, SCENE_W, SCENE_H);
@@ -149,6 +195,8 @@ export default function ShpeHatAnimation({ onComplete, speed = 1 }) {
 
     return () => {
       if (animId) cancelAnimationFrame(animId);
+      if (flickAnimIdRef.current) cancelAnimationFrame(flickAnimIdRef.current);
+      hatWrap.removeEventListener('click', handleHatClick);
     };
   }, [onComplete, speed]);
 
@@ -179,6 +227,8 @@ export default function ShpeHatAnimation({ onComplete, speed = 1 }) {
         .shpe-hat-wrap {
           position: absolute;
           width: 170px;
+          cursor: default;
+          pointer-events: auto;
         }
         .shpe-string-canvas {
           position: absolute;
