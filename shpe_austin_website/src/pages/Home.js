@@ -5,6 +5,556 @@ import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn } from 'react-icons/f
 import { Users, HandHeart, BookOpen, Shield, Briefcase, GraduationCap, Coffee, Trophy, Heart, Star } from 'lucide-react';
 import ShpeHatAnimation from './ShpeHatAnimation';
 
+// ─── Event Pop-up + Floating FAB ──────────────────────────────────────────────
+const POPUP_HEADLINES = [
+  'Take a look at some of our upcoming events!',
+  "Don't miss what the familia has planned!",
+  'Something exciting is coming up — mark your calendar!',
+  'Your next SHPE Austin experience awaits.',
+  "Join us — here's what's on the horizon!",
+];
+
+// Floating particles for the popup background
+const PARTICLES = Array.from({ length: 10 }, (_, i) => ({
+  id: i,
+  x: Math.random() * 100,
+  size: 3 + Math.random() * 4,
+  delay: Math.random() * 4,
+  duration: 5 + Math.random() * 5,
+  color: i % 3 === 0 ? '#FD652F' : i % 3 === 1 ? '#0070C0' : '#72A9BE',
+}));
+
+function FloatingEventsButton({ upcomingCount, onClick }) {
+  const [hovered, setHovered] = useState(false);
+  const btnRef = useRef(null);
+
+  const handleClick = () => {
+    if (btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      onClick({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ scale: 0, opacity: 0, y: 20 }}
+      animate={{ scale: 1, opacity: 1, y: 0 }}
+      exit={{ scale: 0, opacity: 0, y: 20 }}
+      transition={{ type: 'spring', stiffness: 340, damping: 22 }}
+      style={{ position: 'fixed', bottom: 28, right: 28, zIndex: 1500 }}
+    >
+      {/* pulsing rings */}
+      <div style={{
+        position: 'absolute', inset: -6, borderRadius: '50%',
+        border: '2px solid rgba(253,101,47,0.4)',
+        animation: 'fabRing 2.2s ease-out infinite',
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', inset: -12, borderRadius: '50%',
+        border: '1.5px solid rgba(0,112,192,0.25)',
+        animation: 'fabRing 2.2s ease-out 0.5s infinite',
+        pointerEvents: 'none',
+      }} />
+
+      {/* tooltip */}
+      <AnimatePresence>
+        {hovered && (
+          <motion.div
+            initial={{ opacity: 0, x: 8, scale: 0.92 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 8, scale: 0.92 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              position: 'absolute', right: 'calc(100% + 12px)', top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'linear-gradient(135deg, #0b1a3a, #001F5B)',
+              color: '#fff', fontSize: '0.75rem', fontWeight: 800,
+              padding: '8px 14px', borderRadius: 10, whiteSpace: 'nowrap',
+              border: '1px solid rgba(0,112,192,0.3)',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+              pointerEvents: 'none',
+            }}
+          >
+            View upcoming events
+            <div style={{
+              position: 'absolute', right: -5, top: '50%', transform: 'translateY(-50%)',
+              width: 0, height: 0,
+              borderTop: '5px solid transparent', borderBottom: '5px solid transparent',
+              borderLeft: '5px solid #0070C0',
+            }} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* button */}
+      <motion.button
+        ref={btnRef}
+        onClick={handleClick}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.93 }}
+        onHoverStart={() => setHovered(true)}
+        onHoverEnd={() => setHovered(false)}
+        style={{
+          width: 54, height: 54, borderRadius: '50%', border: 'none', cursor: 'pointer',
+          background: 'linear-gradient(135deg, #0070C0 0%, #001F5B 100%)',
+          boxShadow: hovered
+            ? '0 12px 36px rgba(0,112,192,0.55), 0 0 0 2px rgba(253,101,47,0.4)'
+            : '0 8px 24px rgba(0,112,192,0.4)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'box-shadow 0.25s',
+          position: 'relative',
+        }}
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+        {upcomingCount > 0 && (
+          <div style={{
+            position: 'absolute', top: -3, right: -3,
+            width: 18, height: 18, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #FD652F, #D33A02)',
+            color: '#fff', fontSize: '0.6rem', fontWeight: 900,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: '2px solid #fff',
+            boxShadow: '0 2px 8px rgba(253,101,47,0.5)',
+          }}>
+            {upcomingCount}
+          </div>
+        )}
+      </motion.button>
+    </motion.div>
+  );
+}
+
+function EventPopup({ events, onClose, origin }) {
+  const upcoming = events.filter(e => !e.isPast);
+  const ev = upcoming[0];
+  const extraCount = upcoming.length - 1;
+
+  const [headlineIdx, setHeadlineIdx] = useState(() =>
+    Math.floor(Math.random() * POPUP_HEADLINES.length)
+  );
+  const [headlineVisible, setHeadlineVisible] = useState(true);
+  const [shimmerHover, setShimmerHover] = useState(false);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setHeadlineVisible(false);
+      setTimeout(() => {
+        setHeadlineIdx(i => (i + 1) % POPUP_HEADLINES.length);
+        setHeadlineVisible(true);
+      }, 380);
+    }, 4200);
+    return () => clearInterval(id);
+  }, []);
+
+  if (!ev) return null;
+
+  // Circle expands/collapses from the FAB center — liquid morph origin
+  const ox = origin?.x ?? window.innerWidth - 55;
+  const oy = origin?.y ?? window.innerHeight - 55;
+  const clipStart = `circle(27px at ${ox}px ${oy}px)`;
+  const clipEnd   = `circle(200vmax at ${ox}px ${oy}px)`;
+
+  return (
+    // Liquid backdrop — clips from FAB position
+    <motion.div
+      initial={{ clipPath: clipStart }}
+      animate={{ clipPath: clipEnd }}
+      exit={{ clipPath: clipStart }}
+      transition={{ duration: 0.62, ease: [0.16, 1, 0.3, 1] }}
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 2000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 'clamp(10px, 3vw, 20px)',
+        background: 'rgba(0,6,20,0.82)',
+      }}
+    >
+      {/* separate blur layer fades in slightly behind card */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25, delay: 0.2 }}
+        style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          backdropFilter: 'blur(18px)',
+          WebkitBackdropFilter: 'blur(18px)',
+        }}
+      />
+
+      {/* Card — fades in after the circle has started expanding */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.42, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        onClick={e => e.stopPropagation()}
+        style={{
+            position: 'relative',
+            maxWidth: 880,
+            width: '100%',
+            maxHeight: '92vh',
+            borderRadius: 28,
+            overflow: 'hidden',
+            background: 'linear-gradient(155deg, #080f24 0%, #001230 55%, #060c1e 100%)',
+            boxShadow: `
+              0 0 0 1px rgba(0,112,192,0.28),
+              0 48px 130px rgba(0,0,0,0.7),
+              0 0 100px rgba(0,112,192,0.08),
+              inset 0 1px 0 rgba(255,255,255,0.05)
+            `,
+            display: 'flex',
+            flexDirection: 'column',
+            perspective: 800,
+          }}
+        >
+          {/* ── spinning conic border ── */}
+          <div style={{
+            position: 'absolute', inset: -2, zIndex: 0, borderRadius: 30, pointerEvents: 'none',
+            background: 'conic-gradient(from 0deg, #0070C0, #001F5B, #FD652F, #D33A02, #0070C0)',
+            animation: 'popupSpin 6s linear infinite',
+            opacity: 0.55,
+            WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+            WebkitMaskComposite: 'xor',
+            maskComposite: 'exclude',
+            padding: 2,
+          }} />
+
+          {/* ── ambient glow blobs ── */}
+          <div style={{ position: 'absolute', width: 380, height: 380, borderRadius: '50%', background: '#0070C0', top: -130, right: -130, filter: 'blur(110px)', opacity: 0.18, pointerEvents: 'none', zIndex: 0 }} />
+          <div style={{ position: 'absolute', width: 280, height: 280, borderRadius: '50%', background: '#FD652F', bottom: -90, left: -90, filter: 'blur(100px)', opacity: 0.14, pointerEvents: 'none', zIndex: 0 }} />
+          <div style={{ position: 'absolute', width: 180, height: 180, borderRadius: '50%', background: '#72A9BE', top: '40%', left: '30%', filter: 'blur(80px)', opacity: 0.06, pointerEvents: 'none', zIndex: 0 }} />
+
+          {/* ── floating particles ── */}
+          {PARTICLES.map(p => (
+            <div key={p.id} style={{
+              position: 'absolute', zIndex: 0, pointerEvents: 'none',
+              left: `${p.x}%`, bottom: '-10px',
+              width: p.size, height: p.size, borderRadius: '50%',
+              background: p.color,
+              filter: 'blur(1px)',
+              opacity: 0,
+              animation: `popupParticle ${p.duration}s ease-in ${p.delay}s infinite`,
+            }} />
+          ))}
+
+          {/* ── header bar ── */}
+          <div style={{
+            position: 'relative', zIndex: 1,
+            padding: 'clamp(14px,2vw,20px) clamp(16px,3vw,28px)',
+            borderBottom: '1px solid rgba(255,255,255,0.07)',
+            display: 'flex', alignItems: 'center', gap: 10,
+            background: 'rgba(0,112,192,0.06)',
+            backdropFilter: 'blur(4px)',
+          }}>
+            {/* live dot */}
+            <div style={{ position: 'relative', width: 10, height: 10, flexShrink: 0 }}>
+              <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#FD652F', animation: 'popupDot 2s ease-in-out infinite' }} />
+              <div style={{ position: 'absolute', inset: -3, borderRadius: '50%', background: 'rgba(253,101,47,0.35)', animation: 'popupDotRing 2s ease-in-out infinite' }} />
+            </div>
+
+            {/* cycling headline */}
+            <div style={{ flex: 1, overflow: 'hidden', minHeight: 20 }}>
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={headlineIdx}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: headlineVisible ? 1 : 0, y: headlineVisible ? 0 : -10 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  style={{
+                    margin: 0,
+                    fontSize: 'clamp(0.73rem, 1.8vw, 0.85rem)',
+                    fontWeight: 800,
+                    background: 'linear-gradient(90deg, rgba(255,255,255,0.85) 0%, rgba(114,169,190,0.9) 50%, rgba(255,255,255,0.85) 100%)',
+                    backgroundSize: '200% auto',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    animation: 'shimmer 3s linear infinite',
+                    letterSpacing: '0.01em',
+                  }}
+                >
+                  {POPUP_HEADLINES[headlineIdx]}
+                </motion.p>
+              </AnimatePresence>
+            </div>
+
+            {/* SHPE badge */}
+            <div style={{
+              flexShrink: 0, fontSize: '0.6rem', fontWeight: 900,
+              letterSpacing: '0.1em', textTransform: 'uppercase',
+              padding: '4px 10px', borderRadius: 999,
+              background: 'rgba(0,112,192,0.18)',
+              color: '#72A9BE',
+              border: '1px solid rgba(0,112,192,0.3)',
+              display: 'flex', alignItems: 'center', gap: 5,
+            }}>
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              SHPE Austin
+            </div>
+
+            {/* close */}
+            <motion.button
+              initial={{ opacity: 0, rotate: -45 }}
+              animate={{ opacity: 1, rotate: 0 }}
+              transition={{ delay: 0.5, type: 'spring', stiffness: 300, damping: 20 }}
+              onClick={onClose}
+              whileHover={{ rotate: 90, scale: 1.15 }}
+              whileTap={{ scale: 0.9 }}
+              style={{
+                flexShrink: 0, width: 30, height: 30, borderRadius: '50%', border: 'none',
+                background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.55)',
+                fontSize: 16, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'background 0.2s, color 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,80,60,0.2)'; e.currentTarget.style.color = '#ff6b6b'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
+            >
+              ×
+            </motion.button>
+          </div>
+
+          {/* ── body ── */}
+          <div style={{
+            position: 'relative', zIndex: 1,
+            display: 'flex',
+            overflowY: 'auto',
+            flex: 1,
+            flexWrap: 'wrap',
+            alignItems: 'stretch',
+          }}>
+
+            {/* flyer column */}
+            {ev.flyer && (
+              <motion.div
+                initial={{ opacity: 0, x: -28 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                className="popup-flyer-col"
+                style={{
+                  flex: '0 0 auto',
+                  width: 'clamp(180px, 38%, 300px)',
+                  minHeight: 260,
+                  background: '#000',
+                  position: 'relative',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  overflow: 'hidden',
+                }}
+              >
+                <img
+                  src={ev.flyer}
+                  alt={ev.title}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                />
+                {/* subtle right fade */}
+                <div style={{
+                  position: 'absolute', top: 0, right: 0, bottom: 0, width: 40,
+                  background: 'linear-gradient(to right, transparent, #080f24)',
+                  pointerEvents: 'none',
+                }} />
+              </motion.div>
+            )}
+
+            {/* details column */}
+            <div style={{
+              flex: '1 1 240px',
+              padding: 'clamp(20px,3vw,32px)',
+              display: 'flex', flexDirection: 'column',
+              minWidth: 0,
+            }}>
+
+              {/* tag */}
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                style={{ marginBottom: 14, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}
+              >
+                <span style={{
+                  fontSize: '0.62rem', fontWeight: 900, letterSpacing: '0.12em',
+                  textTransform: 'uppercase', padding: '5px 13px', borderRadius: 999,
+                  background: ev.tagBg, color: ev.tagColor,
+                  border: `1px solid ${ev.tagColor}44`,
+                  boxShadow: `0 0 12px ${ev.tagColor}22`,
+                }}>
+                  {ev.tag}
+                </span>
+                {extraCount > 0 && (
+                  <span style={{
+                    fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.08em',
+                    textTransform: 'uppercase', padding: '5px 11px', borderRadius: 999,
+                    background: 'rgba(255,255,255,0.05)',
+                    color: 'rgba(255,255,255,0.4)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                  }}>
+                    +{extraCount} more
+                  </span>
+                )}
+              </motion.div>
+
+              {/* title — gradient shimmer */}
+              <motion.h3
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                style={{
+                  fontWeight: 900,
+                  fontSize: 'clamp(1.2rem, 3.5vw, 1.75rem)',
+                  margin: '0 0 12px', lineHeight: 1.15,
+                  letterSpacing: '-0.025em',
+                  background: 'linear-gradient(120deg, #ffffff 0%, #c8dff0 40%, #ffffff 60%, #ffd0b8 85%, #ffffff 100%)',
+                  backgroundSize: '250% auto',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  animation: 'textShimmer 6s linear infinite',
+                }}
+              >
+                {ev.title}
+              </motion.h3>
+
+              {/* date row */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  margin: '0 0 18px',
+                  padding: '8px 12px', borderRadius: 10,
+                  background: 'rgba(0,112,192,0.1)',
+                  border: '1px solid rgba(0,112,192,0.18)',
+                  width: 'fit-content',
+                }}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#72A9BE" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#72A9BE' }}>{ev.date}</span>
+              </motion.div>
+
+              {/* description — full */}
+              {ev.description && (
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.35 }}
+                  style={{
+                    fontSize: 'clamp(0.82rem, 1.8vw, 0.9rem)',
+                    lineHeight: 1.72,
+                    color: 'rgba(200,216,232,0.7)',
+                    margin: '0 0 28px',
+                    flex: 1,
+                  }}
+                >
+                  {renderDescription(ev.description)}
+                </motion.p>
+              )}
+
+              {/* divider */}
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 0.4, duration: 0.5, ease: 'easeOut' }}
+                style={{
+                  height: 1, marginBottom: 22, transformOrigin: 'left',
+                  background: 'linear-gradient(90deg, rgba(0,112,192,0.5), rgba(253,101,47,0.3), transparent)',
+                }}
+              />
+
+              {/* CTA row */}
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.44 }}
+                style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginTop: 'auto' }}
+              >
+                {/* primary CTA with shimmer */}
+                <a
+                  href={ev.rsvp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={onClose}
+                  onMouseEnter={() => setShimmerHover(true)}
+                  onMouseLeave={() => setShimmerHover(false)}
+                  style={{
+                    position: 'relative', overflow: 'hidden',
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    fontWeight: 900, fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
+                    borderRadius: 14, padding: 'clamp(10px,2vw,13px) clamp(18px,3vw,26px)',
+                    background: 'linear-gradient(135deg, #FD652F 0%, #D33A02 100%)',
+                    color: '#fff', textDecoration: 'none',
+                    boxShadow: '0 6px 24px rgba(253,101,47,0.4), inset 0 1px 0 rgba(255,255,255,0.15)',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    whiteSpace: 'nowrap',
+                    transform: shimmerHover ? 'translateY(-2px)' : 'none',
+                  }}
+                >
+                  {/* shimmer sweep */}
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    background: 'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%)',
+                    backgroundSize: '200% 100%',
+                    backgroundPosition: shimmerHover ? '0% 0%' : '200% 0%',
+                    transition: 'background-position 0.55s ease',
+                    pointerEvents: 'none',
+                  }} />
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                  {ev.tag?.toLowerCase() === 'event' ? 'Register Now' : 'RSVP Now'}
+                </a>
+
+                {/* ghost CTA */}
+                <button
+                  onClick={() => {
+                    onClose();
+                    setTimeout(() => {
+                      document.getElementById('upcoming-events-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    fontWeight: 800, fontSize: 'clamp(0.75rem, 1.8vw, 0.82rem)',
+                    color: 'rgba(114,169,190,0.7)',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    transition: 'color 0.2s',
+                    whiteSpace: 'nowrap',
+                    padding: '4px 2px',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#72A9BE'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(114,169,190,0.7)'}
+                >
+                  See all events
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </button>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* ── bottom accent bar ── */}
+          <div style={{
+            position: 'relative', zIndex: 1,
+            height: 3,
+            background: 'linear-gradient(90deg, #001F5B, #0070C0 30%, #72A9BE 50%, #FD652F 70%, #D33A02)',
+            backgroundSize: '200% 100%',
+            animation: 'popupRingPulse 4s ease infinite',
+          }} />
+        </motion.div>
+    </motion.div>
+  );
+}
+
 const charVariants = {
   hidden: { opacity: 0, y: 40, rotateX: -90 },
   visible: (i) => ({
@@ -387,6 +937,10 @@ export default function Home() {
   const [lightboxSrc, setLightboxSrc] = useState(null);
   const [activeIdx, setActiveIdx] = useState(0);
   const [carouselPaused, setCarouselPaused] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  // seed from sessionStorage so the FAB survives SPA navigation
+  const [hasEverShown, setHasEverShown] = useState(() => !!sessionStorage.getItem('popupShown'));
+  const [fabOrigin, setFabOrigin] = useState(null);
   const alreadyPlayed = sessionStorage.getItem('introPlayed');
 
   // single interval drives both the flyer and the detail panel
@@ -419,6 +973,31 @@ export default function Home() {
   const handleHatComplete = useCallback(() => {
     sessionStorage.setItem('introPlayed', 'true');
     setHatDone(true);
+  }, []);
+
+  // Show popup once per session, right after intro finishes, only if upcoming events exist
+  useEffect(() => {
+    if (!hatDone) return;
+    if (eventsLoading) return;
+    if (sessionStorage.getItem('popupShown')) return;
+    const hasUpcoming = events.some(e => !e.isPast);
+    if (!hasUpcoming) return;
+    const timer = setTimeout(() => {
+      sessionStorage.setItem('popupShown', 'true');
+      setShowPopup(true);
+      setHasEverShown(true);
+    }, 1400);
+    return () => clearTimeout(timer);
+  }, [hatDone, eventsLoading, events]);
+
+  const handleClosePopup = useCallback(() => {
+    setShowPopup(false);
+    setHasEverShown(true);
+  }, []);
+
+  const handleFabClick = useCallback((pos) => {
+    setFabOrigin(pos);
+    setShowPopup(true);
   }, []);
 
   return (
@@ -469,9 +1048,69 @@ export default function Home() {
           0%, 100% { box-shadow: 0 0 0 0 rgba(211,58,2,0.0); }
           50%       { box-shadow: 0 0 0 6px rgba(211,58,2,0.18); }
         }
+        @keyframes popupRingPulse {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes popupSpin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+        @keyframes popupDot {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%       { opacity: 0.4; transform: scale(0.7); }
+        }
+        @keyframes popupDotRing {
+          0%, 100% { opacity: 0.6; transform: scale(1); }
+          50%       { opacity: 0; transform: scale(2.2); }
+        }
+        @keyframes popupParticle {
+          0%   { opacity: 0; transform: translateY(0) scale(1); }
+          15%  { opacity: 0.7; }
+          85%  { opacity: 0.3; }
+          100% { opacity: 0; transform: translateY(-240px) scale(0.4); }
+        }
+        @keyframes fabRing {
+          0%   { opacity: 0.7; transform: scale(1); }
+          100% { opacity: 0; transform: scale(2.2); }
+        }
+        /* popup flyer: side-by-side on wide, centered on narrow */
+        .popup-flyer-col {
+          min-height: 260px;
+        }
+        @media (max-width: 560px) {
+          .popup-flyer-col {
+            width: 100% !important;
+            max-height: 240px;
+            align-self: center;
+            justify-content: center;
+          }
+        }
       `}</style>
 
-      
+      <AnimatePresence>
+        {showPopup && (
+          <EventPopup
+            key="event-popup"
+            events={events}
+            onClose={handleClosePopup}
+            origin={fabOrigin}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {hasEverShown && !showPopup && events.some(e => !e.isPast) && (
+          <FloatingEventsButton
+            key="events-fab"
+            upcomingCount={events.filter(e => !e.isPast).length}
+            onClick={handleFabClick}
+          />
+        )}
+      </AnimatePresence>
+
+
       {stage === 'video' && (
         <div style={{
           transition: 'opacity 0.6s ease',
@@ -808,7 +1447,7 @@ export default function Home() {
       {/*
           SECTION 3 — UPCOMING EVENTS
       ══════════════════════════════════════ */}
-      <section className="py-28 px-6" style={{ background: '#f8fafc' }}>
+      <section id="upcoming-events-section" className="py-28 px-6" style={{ background: '#f8fafc' }}>
         <motion.div {...fadeUp} className="text-center max-w-xl mx-auto mb-16">
           <span className="inline-block px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase mb-4" style={{ background: 'rgba(211,58,2,0.08)', color: '#D33A02', border: '1px solid rgba(211,58,2,0.2)' }}>
             What's Coming Up
