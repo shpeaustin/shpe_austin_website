@@ -92,18 +92,6 @@ const board = [
     gradient: 'linear-gradient(135deg, #D33A02 0%, #a82d01 100%)',
   },
   {
-    name: 'Noe Melchor',
-    position: 'Outreach Director',
-    profession: 'Spacecraft Assembly Integration & Test Engineer',
-    company: 'Firefly',
-    school: 'University of California - San Diego',
-    funFact: null,
-    whyShpe: null,
-    photo: require('../assets/executive_board/noe_melchor.png'),
-    accent: '#FD652F',
-    gradient: 'linear-gradient(135deg, #FD652F 0%, #d44e20 100%)',
-  },
-  {
     name: 'Luigi Medrano',
     position: 'Professional Development Director',
     profession: 'Software Engineer / Data Scientist',
@@ -253,13 +241,14 @@ export default function ExecutiveBoard() {
 
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
               gap: 16,
             }}
           >
             {board.map((member, i) => (
-              <div key={member.position} id={`member-card-${i}`}>
+              <div key={member.position} id={`member-card-${i}`} style={{ flex: '0 1 220px', minWidth: 220 }}>
                 <MemberCard member={member} index={i} onSelect={setSelectedMember} />
               </div>
             ))}
