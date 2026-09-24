@@ -20,6 +20,7 @@ export function Navbar() {
       links: [
         { label: "National Programs", href: "/national-programs", ariaLabel: "National Programs page" },
         { label: "Events", href: "/events", ariaLabel: "Events page" },
+        { label: "Career Resources", href: "/resources", ariaLabel: "Career resources page" },
       ]
     },
     {
