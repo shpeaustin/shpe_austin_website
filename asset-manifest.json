@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.39faa94f.css",
-    "main.js": "/static/js/main.a8804e71.js",
+    "main.css": "/static/css/main.d04c89c2.css",
+    "main.js": "/static/js/main.de56f319.js",
     "static/js/453.170c19b2.chunk.js": "/static/js/453.170c19b2.chunk.js",
     "static/media/shpe_animated_video.mp4": "/static/media/shpe_animated_video.eb069c548c51a0d4d384.mp4",
     "static/media/anamaria_torres.jpg": "/static/media/anamaria_torres.696c193b28fc02e5a21e.jpg",
@@ -13,6 +13,7 @@
     "static/media/marvin_andara.png": "/static/media/marvin_andara.329b91a8fd89eae4a732.png",
     "static/media/luis_ramirez.png": "/static/media/luis_ramirez.0e1fd43f77576fa9205e.png",
     "static/media/eugenia_rodriguez.jpeg": "/static/media/eugenia_rodriguez.3c33cc9faa49d60e4a49.jpeg",
+    "static/media/technical_resume_template.pdf": "/static/media/technical_resume_template.725296c3f52be84162a0.pdf",
     "static/media/susana_samayoa.jpg": "/static/media/susana_samayoa.08aeb6bb5f46cda025da.jpg",
     "static/media/2023-SHPE-Austin-990-N-3.pdf": "/static/media/2023-SHPE-Austin-990-N-3.76ad183f6f08c0f9ddf7.pdf",
     "static/media/2024-SHPE-Austin-990-N.pdf": "/static/media/2024-SHPE-Austin-990-N.5112294601374a9c57d3.pdf",
@@ -21,12 +22,12 @@
     "static/media/SHPE_stacked_logo_national.png": "/static/media/SHPE_stacked_logo_national.eb9e525f3bec3249e852.png",
     "index.html": "/index.html",
     "static/media/arm_logo.svg": "/static/media/arm_logo.f165a329d3b5c96b1fae84c37c07b9fd.svg",
-    "main.39faa94f.css.map": "/static/css/main.39faa94f.css.map",
-    "main.a8804e71.js.map": "/static/js/main.a8804e71.js.map",
+    "main.d04c89c2.css.map": "/static/css/main.d04c89c2.css.map",
+    "main.de56f319.js.map": "/static/js/main.de56f319.js.map",
     "453.170c19b2.chunk.js.map": "/static/js/453.170c19b2.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.39faa94f.css",
-    "static/js/main.a8804e71.js"
+    "static/css/main.d04c89c2.css",
+    "static/js/main.de56f319.js"
   ]
 }
