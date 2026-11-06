@@ -54,19 +54,6 @@ const board = [
     gradient: 'linear-gradient(135deg, #FD652F 0%, #d44e20 100%)',
   },
   {
-    name: 'Juan Ramirez',
-    position: 'Membership Director',
-    profession: 'Manufacturing Engineer',
-    company: 'Saronic',
-    school: 'University of Houston',
-    funFact: 'Currently working on getting my pilot license.',
-    whyShpe: 'Joined SHPE back in school and wanted to continue being a member even as a professional.',
-    photo: require('../assets/executive_board/juan_ramirez.jpeg'),
-    photoPosition: 'center 20%',
-    accent: '#001F5B',
-    gradient: 'linear-gradient(135deg, #001F5B 0%, #0a2a5e 100%)',
-  },
-  {
     name: 'Anamaria Torres',
     position: 'Partnership Director',
     profession: 'Senior Transportation Engineer',
@@ -130,9 +117,9 @@ const board = [
 // quick stats bar between hero and team grid
 
 const stats = [
-  { value: 10, suffix: '', label: 'Chapter Leaders' },
-  { value: 11, suffix: '', label: 'Universities' },
-  { value: 10, suffix: '', label: 'Companies' },
+  { value: board.length, suffix: '', label: 'Chapter Leaders' },
+  { value: 10, suffix: '', label: 'Universities' },
+  { value: 8, suffix: '', label: 'Companies' },
   { value: 1,  suffix: '', label: 'Mission' },
 ];
 
@@ -245,6 +232,9 @@ export default function ExecutiveBoard() {
               flexWrap: 'wrap',
               justifyContent: 'center',
               gap: 16,
+              // cap at 4 cards per row (4 × 220px + 3 × 16px gap) so 8 members split evenly 4 + 4
+              maxWidth: 928,
+              margin: '0 auto',
             }}
           >
             {board.map((member, i) => (
